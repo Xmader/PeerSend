@@ -14,7 +14,7 @@ const keyAlgorithmList = ["RSA-OAEP", "RSA-PSS"]
 const genKeyOpts = {
     name: "RSA-PSS",
     hash: hashAlgorithm,
-    modulusLength: 4096,
+    modulusLength: 2048,
     publicExponent: new Uint8Array([0x01, 0x00, 0x01])
 }
 

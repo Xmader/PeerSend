@@ -1,17 +1,22 @@
 // @ts-check
 
-const RSA = require("./rsa.js")
+const { initKeyPair, encryptAndSign, decryptAndVerify } = require("./core.js")
 
-const data = new Uint8Array([1, 2, 3]);
+const text = "你好";
 
 (async () => {
-    const keyPair = await RSA.generateRSAKeyPair()
+    const AK = (await initKeyPair()).publicKeyE
+    const BK = (await initKeyPair()).publicKeyE
 
-    const encrypted = await RSA.encrypt(keyPair.publicKey, data)
-    const decrypted = await RSA.decrypt(keyPair.privateKey, encrypted)
-    console.log(new Uint8Array(decrypted))
+    console.log("AK", AK)
+    console.log("BK", BK)
 
-    const signature = await RSA.sign(keyPair.privateKey,data)
-    const verified = await RSA.verify(keyPair.publicKey,signature,data)
-    console.log(verified)
+    // A
+    const message = await encryptAndSign(text, BK)
+    console.log(message)
+
+    // B
+    const output = await decryptAndVerify(message, AK)
+    console.log(output)
+
 })()
