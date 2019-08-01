@@ -1,0 +1,35 @@
+{
+    "name": "peersend",
+    "version": "1.0.0",
+    "main": "src/index.js",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Xmader/PeerSend.git"
+    },
+    "author": "Xmader",
+    "bugs": {
+        "url": "https://github.com/Xmader/PeerSend/issues"
+    },
+    "homepage": "https://github.com/Xmader/PeerSend#readme",
+    "scripts": {
+        "build": "parcel build src/index.js -d ../dist --public-url ./ --detailed-report",
+        "watch": "parcel watch src/index.js -d ../dist --public-url ./ ",
+        "http-server": "http-server . -p 8082 -c-1 -s"
+    },
+    "dependencies": {
+        "dexie": "^2.0.4",
+        "vue": "^2.6.10",
+        "vue-material": "~0.8.1"
+    },
+    "devDependencies": {
+        "@babel/core": "^7.5.5",
+        "@vue/component-compiler-utils": "^2.6.0",
+        "core-js": "^3.1.4",
+        "http-server": "git+https://github.com/Xmader/http-server.git",
+        "parcel-bundler": "^1.12.3",
+        "vue-hot-reload-api": "^2.3.3",
+        "vue-template-compiler": "^2.6.10",
+        "whatwg-fetch": "^3.0.0"
+    },
+    "license": "MIT"
+}
