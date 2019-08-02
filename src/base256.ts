@@ -7,7 +7,7 @@ const Chars256 = "按部占这她费，当记商效取一全第前二高港创�
 namespace BASE256 {
 
     export const encode = (data: NodeJS.TypedArray) => {
-        data = new Uint8Array(data)
+        data = new Uint8Array(data.buffer)
         return Array.from(data).map((x) => {
             return Chars256[x]
         }).join("")

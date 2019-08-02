@@ -5,11 +5,12 @@ import RSA from "./rsa"
 import { Base256Serializer, Serializer } from "./serialization"
 
 
-export const encryptAndSign = async (
+export const encryptAndSign = async <T = string>(
     text: string,
     peerPublicKeyE: string,
     selfStoreName: string = "self",
-    serializer: Serializer<any> = Base256Serializer
+    // @ts-ignore
+    serializer: Serializer<T> = Base256Serializer
 ) => {
     const data = new TextEncoder().encode(text)
 
@@ -25,10 +26,11 @@ export const encryptAndSign = async (
 }
 
 
-export const decryptAndVerify = async (
-    serializedData: string | Uint8Array,
+export const decryptAndVerify = async <T = string>(
+    serializedData: T,
     selfStoreName: string = "self",
-    serializer: Serializer<any> = Base256Serializer
+    // @ts-ignore
+    serializer: Serializer<T> = Base256Serializer
 ) => {
     const { encryptedData, signature, senderPublicKey } = await serializer.deserialize(serializedData)
 
