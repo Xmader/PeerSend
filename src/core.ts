@@ -1,15 +1,10 @@
 // @ts-check
 
-import KEY from "./key.js"
-import RSA from "./rsa.js"
+import KEY from "./key"
+import RSA from "./rsa"
 import { Base256Serializer, Serializer } from "./serialization"
 
-/**
- * @param {string} text 
- * @param {string} peerPublicKeyE
- * @param {string=} selfStoreName 
- * @param {Serializer<any>} serializer 
- */
+
 export const encryptAndSign = async (
     text: string,
     peerPublicKeyE: string,
@@ -29,15 +24,10 @@ export const encryptAndSign = async (
     return serializer.serialize({ encryptedData, signature, senderPublicKey: selfPublicKey })
 }
 
-/**
- * @param {string | Uint8Array} serializedData 
- * @param {string=} senderPublicKeyE 发送方的公钥，用来验证签名
- * @param {string=} selfStoreName 
- * @param {Serializer<any>} serializer 
- */
+
 export const decryptAndVerify = async (
     serializedData: string | Uint8Array,
-    senderPublicKeyE: string = null,
+    senderPublicKeyE: string = null, /** 发送方的公钥，用来验证签名 */
     selfStoreName: string = "self",
     serializer: Serializer<any> = Base256Serializer
 ) => {
@@ -60,9 +50,9 @@ export const decryptAndVerify = async (
     }
 }
 
+
 /**
  * 初始化密钥对
- * @param {string=} storeName 
  */
 export const initKeyPair = async (storeName: string = "self") => {
     // 强制覆盖生成密钥对

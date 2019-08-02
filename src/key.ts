@@ -33,7 +33,7 @@ namespace KEY {
      * 生成自己的密钥对，如果存在，则强制覆盖已有的密钥对
      * @param {string=} storeName 
      */
-    export const generateAndSaveKeyPair = async (storeName: string | undefined = "self") => {
+    export const generateAndSaveKeyPair = async (storeName: string = "self") => {
         const keyPair = await RSA.generateRSAKeyPair()
 
         const privateKeyObj = await RSA.exportKeyObj(keyPair.privateKey)
@@ -56,7 +56,7 @@ namespace KEY {
      * 获取自己的私钥，如果不存在，则自动生成
      * @param {string=} storeName 
      */
-    export const getPrivateKey = async (storeName: string | undefined = "self") => {
+    export const getPrivateKey = async (storeName: string = "self") => {
         const store = localforage.createInstance({
             name: storeName,
         })
@@ -75,7 +75,7 @@ namespace KEY {
      * 获取自己的公钥，如果不存在，则自动生成
      * @param {string=} storeName 
      */
-    export const getPublicKey = async (storeName: string | undefined = "self") => {
+    export const getPublicKey = async (storeName: string = "self") => {
         const store = localforage.createInstance({
             name: storeName,
         })
