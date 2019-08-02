@@ -9,7 +9,7 @@ const data = new Uint8Array([1, 2, 3]);
 
     const encrypted = await RSA.encrypt(keyPair.publicKey, data)
     const decrypted = await RSA.decrypt(keyPair.privateKey, encrypted)
-    console.log(new Uint8Array(decrypted))
+    console.log(decrypted)
 
     const signature = await RSA.sign(keyPair.privateKey, data)
     const verified = await RSA.verify(keyPair.publicKey, signature, data)

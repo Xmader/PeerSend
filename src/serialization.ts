@@ -37,7 +37,71 @@ export const Base256Serializer: Serializer<string> = {
 
 }
 
-// @ts-ignore
+
+const _getTotalLength = (...args: NodeJS.TypedArray[]) => {
+    return args.reduce((p, c) => {
+        return p + c.byteLength
+    }, 0)
+}
+
 export const BinarySerializer: Serializer<Uint8Array> = {
+
+    async serialize(init: SerializationInit) {
+        const { encryptedData, signature, senderPublicKey } = init
+
+        const senderPublicKeyE = await KEY.exportPublicKeyE(senderPublicKey)
+        const keyBytes = BASE256.decode(senderPublicKeyE)
+
+        const arrayBuf = new ArrayBuffer(
+            _getTotalLength(encryptedData, signature, keyBytes)
+            + 4 * 3  // Uint32 4 bytes * 3
+        )
+
+        const dataView = new DataView(arrayBuf)
+        const buf = new Uint8Array(arrayBuf)  // share the same ArrayBuffer
+
+        let len = 0
+
+        const setLengthPrefixedData = (data: Uint8Array) => {
+            const dataLength = data.byteLength
+            dataView.setUint32(len, dataLength)
+            len += 4
+            buf.set(data, len)
+            len += dataLength
+        }
+
+        setLengthPrefixedData(encryptedData)
+        setLengthPrefixedData(signature)
+        setLengthPrefixedData(keyBytes)
+
+        return buf
+    },
+
+    async deserialize(serializedData: Uint8Array) {
+        const dataView = new DataView(serializedData.buffer)
+
+        let len = 0
+
+        const getLengthPrefixedData = () => {
+            const dataLength = dataView.getUint32(len)
+            len += 4
+            const data = serializedData.slice(len, len + dataLength)
+            len += dataLength
+            return data
+        }
+
+        const encryptedData = getLengthPrefixedData()
+        const signature = getLengthPrefixedData()
+        const keyBytes = getLengthPrefixedData()
+
+        const senderPublicKeyE = BASE256.encode(keyBytes)
+        const senderPublicKey = await KEY.importPublicKeyFromE(senderPublicKeyE)
+        
+        return {
+            encryptedData,
+            signature,
+            senderPublicKey,
+        }
+    }
 
 }
