@@ -2,7 +2,7 @@
 
 const { initKeyPair, encryptAndSign, decryptAndVerify } = require("./core.js")
 
-const text = "你好";
+const text = "a".repeat(190 + 1);
 
 (async () => {
     const AK = (await initKeyPair("A")).publicKeyE
