@@ -27,14 +27,22 @@ const importPublicKeyFromE = async (keyE) => {
     return key
 }
 
-const generateAndSaveKeyPair = async () => {
+/**
+ * 生成自己的密钥对，如果存在，则强制覆盖已有的密钥对
+ * @param {string=} storeName 
+ */
+const generateAndSaveKeyPair = async (storeName = "self") => {
     const keyPair = await RSA.generateRSAKeyPair()
 
     const privateKeyObj = await RSA.exportKeyObj(keyPair.privateKey)
     const publicKeyObj = await RSA.exportKeyObj(keyPair.publicKey)
 
-    await localforage.setItem("PrivateKeyObj", privateKeyObj)
-    await localforage.setItem("PublicKeyObj", publicKeyObj)
+    const store = localforage.createInstance({
+        name: storeName,
+    })
+
+    await store.setItem("PrivateKeyObj", privateKeyObj)
+    await store.setItem("PublicKeyObj", publicKeyObj)
 
     return {
         privateKeyObj,
@@ -42,10 +50,18 @@ const generateAndSaveKeyPair = async () => {
     }
 }
 
-const getPrivateKey = async () => {
-    let keyObj = await localforage.getItem("PrivateKeyObj")
+/**
+ * 获取自己的私钥，如果不存在，则自动生成
+ * @param {string=} storeName 
+ */
+const getPrivateKey = async (storeName = "self") => {
+    const store = localforage.createInstance({
+        name: storeName,
+    })
+
+    let keyObj = await store.getItem("PrivateKeyObj")
     if (!keyObj) {
-        const keyObjPair = await generateAndSaveKeyPair()
+        const keyObjPair = await generateAndSaveKeyPair(storeName)
         keyObj = keyObjPair.privateKeyObj
     }
 
@@ -53,10 +69,18 @@ const getPrivateKey = async () => {
     return privateKey
 }
 
-const getPublicKey = async () => {
-    let keyObj = await localforage.getItem("PublicKeyObj")
+/**
+ * 获取自己的公钥，如果不存在，则自动生成
+ * @param {string=} storeName 
+ */
+const getPublicKey = async (storeName = "self") => {
+    const store = localforage.createInstance({
+        name: storeName,
+    })
+
+    let keyObj = await store.getItem("PublicKeyObj")
     if (!keyObj) {
-        const keyObjPair = await generateAndSaveKeyPair()
+        const keyObjPair = await generateAndSaveKeyPair(storeName)
         keyObj = keyObjPair.publicKeyObj
     }
 
