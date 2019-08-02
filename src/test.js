@@ -1,6 +1,7 @@
 // @ts-check
 
 import { initKeyPair, encryptAndSign, decryptAndVerify } from "./core"
+import { Base256SeparatorChar } from "./serialization"
 
 const text = "a".repeat(190 + 1);
 
@@ -16,7 +17,7 @@ const text = "a".repeat(190 + 1);
     console.log(message)
 
     // B
-    const output = await decryptAndVerify(message, AK, "B")
+    const output = await decryptAndVerify(message + Base256SeparatorChar + AK, "B")
     console.log(output)
 
 })()

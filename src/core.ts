@@ -27,22 +27,20 @@ export const encryptAndSign = async (
 
 export const decryptAndVerify = async (
     serializedData: string | Uint8Array,
-    senderPublicKeyE: string = null, /** 发送方的公钥，用来验证签名 */
     selfStoreName: string = "self",
     serializer: Serializer<any> = Base256Serializer
 ) => {
-    const { encryptedData, signature } = serializer.deserialize(serializedData)
+    const { encryptedData, signature, senderPublicKey } = await serializer.deserialize(serializedData)
 
     const privateKey = await KEY.getPrivateKey(selfStoreName)
 
     const decryptedData = await RSA.decrypt(privateKey, encryptedData)
     const text = new TextDecoder().decode(decryptedData)
 
-    if (!senderPublicKeyE) {
+    if (!senderPublicKey) {
         return text
     }
 
-    const senderPublicKey = await KEY.importPublicKeyFromE(senderPublicKeyE)
     const verified = RSA.verify(senderPublicKey, signature, decryptedData)
 
     if (verified) {
