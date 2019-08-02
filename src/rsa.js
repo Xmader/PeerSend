@@ -124,7 +124,8 @@ const _autoConvertKey = async (key, algorithm) => {
  */
 const sign = async (privateKey, data) => {
     privateKey = await _autoConvertKey(privateKey, "RSA-PSS")
-    return subtle.sign(signOpts, privateKey, data)
+    const signature = await subtle.sign(signOpts, privateKey, data)
+    return new Uint8Array(signature)
 }
 
 /**
