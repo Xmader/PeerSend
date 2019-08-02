@@ -50,6 +50,9 @@ const usageMap = {
     },
 }
 
+const maxDataBlockSize = 190  // the maximum block size for RSA 2048 bits with SHA-256 is 190 bytes
+const encryptedBlockSize = 256
+
 /** @typedef {NodeJS.TypedArray | DataView | ArrayBuffer} BinaryData */
 
 // TODO: IE returns CryptoOperation instead of Promise
@@ -135,12 +138,61 @@ const verify = async (publicKey, signature, data) => {
 }
 
 /**
+ * @param {BinaryData} data 
+ * @param {number} blockSize
+ */
+const splitBlocks = (data, blockSize) => {
+    // convert to ArrayBuffer
+    if (!(data instanceof ArrayBuffer)) {
+        data = data.buffer
+    }
+
+    /** @type {ArrayBuffer[]} */
+    const blocks = []
+
+    for (let i = 0; i < data.byteLength; i += blockSize) {
+        const block = data.slice(i, i + blockSize)
+        blocks.push(block)
+    }
+
+    return blocks
+}
+
+/**
+ * concat blocks with a fixed size, except the last block
+ * @param {ArrayBuffer[]} blocks
+ * @param {number} blockSize the fixed size for each block
+ */
+const concatBlocks = (blocks, blockSize) => {
+    if (blocks.length == 0) {
+        return new Uint8Array(0)
+    }
+
+    const result = new Uint8Array(
+        (blocks.length - 1) * blockSize +
+        blocks[blocks.length - 1].byteLength
+    )
+
+    blocks.forEach((block, index) => {
+        result.set(new Uint8Array(block), index * blockSize)
+    })
+
+    return result
+}
+
+/**
  * @param {CryptoKey} publicKey 
  * @param {BinaryData} data 
  */
 const encrypt = async (publicKey, data) => {
     publicKey = await _autoConvertKey(publicKey, "RSA-OAEP")
-    return subtle.encrypt(encryptOpts, publicKey, data)
+    const blocks = splitBlocks(data, maxDataBlockSize)
+    const encryptedBlocks = await Promise.all(
+        blocks.map((block) => {
+            return subtle.encrypt(encryptOpts, publicKey, block)
+        })
+    )
+    return concatBlocks(encryptedBlocks, encryptedBlockSize)
 }
 
 /**
@@ -149,7 +201,13 @@ const encrypt = async (publicKey, data) => {
  */
 const decrypt = async (privateKey, data) => {
     privateKey = await _autoConvertKey(privateKey, "RSA-OAEP")
-    return subtle.decrypt(encryptOpts, privateKey, data)
+    const encryptedBlocks = splitBlocks(data, encryptedBlockSize)
+    const decryptedBlocks = await Promise.all(
+        encryptedBlocks.map((block) => {
+            return subtle.decrypt(encryptOpts, privateKey, block)
+        })
+    )
+    return concatBlocks(decryptedBlocks, maxDataBlockSize)
 }
 
 module.exports = {
