@@ -29,6 +29,7 @@
         "http-server": "git+https://github.com/Xmader/http-server.git",
         "parcel-bundler": "^1.12.3",
         "text-encoding": "^0.7.0",
+        "typescript": "^3.5.3",
         "vue-hot-reload-api": "^2.3.3",
         "vue-template-compiler": "^2.6.10",
         "whatwg-fetch": "^3.0.0"
