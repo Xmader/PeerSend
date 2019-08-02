@@ -1,6 +1,6 @@
 // @ts-check
 
-const RSA = require("./rsa.js")
+import RSA from "./rsa"
 
 const data = new Uint8Array([1, 2, 3]);
 

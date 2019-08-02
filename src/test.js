@@ -1,6 +1,6 @@
 // @ts-check
 
-const { initKeyPair, encryptAndSign, decryptAndVerify } = require("./core.js")
+import { initKeyPair, encryptAndSign, decryptAndVerify } from "./core"
 
 const text = "a".repeat(190 + 1);
 
