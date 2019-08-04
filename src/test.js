@@ -20,7 +20,7 @@ const dataObj = { type: DataType.text, data: text };
     console.log(message)
 
     // B
-    const output = await decryptAndVerify(message + Base256SeparatorChar + AK, "B")
+    const output = await decryptAndVerify(message, AK, "B")
     console.log(output)
 
     console.log("encrypt and decrypt with BinarySerializer")
@@ -30,7 +30,7 @@ const dataObj = { type: DataType.text, data: text };
     console.log(message1)
 
     // B
-    const output1 = await decryptAndVerify(message1, "B", BinarySerializer)
+    const output1 = await decryptAndVerify(message1, AK, "B", BinarySerializer)
     console.log(output1)
 
 })()

@@ -41,21 +41,21 @@ export const encryptAndSign = async <T = string>(
     const encryptedData = await RSA.encrypt(peerPublicKey, prefixedData)
 
     const selfPrivateKey = await KEY.getPrivateKey(selfStoreName)
-    const selfPublicKey = await KEY.getPublicKey(selfStoreName)
-
     const signature = await RSA.sign(selfPrivateKey, prefixedData)
 
-    return serializer.serialize({ encryptedData, signature, senderPublicKey: selfPublicKey })
+    return serializer.serialize({ encryptedData, signature })
 }
 
 
 export const decryptAndVerify = async <T = string>(
     serializedData: T,
+    /** 发送方的公钥，用来验证签名 */
+    senderPublicKeyE?: string,
     selfStoreName: string = "self",
     // @ts-ignore
     serializer: Serializer<T> = Base256Serializer
 ) => {
-    const { encryptedData, signature, senderPublicKey } = await serializer.deserialize(serializedData)
+    const { encryptedData, signature } = await serializer.deserialize(serializedData)
 
     const privateKey = await KEY.getPrivateKey(selfStoreName)
 
@@ -70,10 +70,11 @@ export const decryptAndVerify = async <T = string>(
             : rawData,
     }
 
-    if (!senderPublicKey) {
+    if (!senderPublicKeyE) {
         return dataObj
     }
 
+    const senderPublicKey = await KEY.importPublicKeyFromE(senderPublicKeyE)
     const verified = RSA.verify(senderPublicKey, signature, decryptedPrefixedData)
 
     if (verified) {
