@@ -1,9 +1,10 @@
 // @ts-check
 
 import { initKeyPair, encryptAndSign, decryptAndVerify, DataType } from "./core"
-import { Base256SeparatorChar, BinarySerializer } from "./serialization"
+import { BinarySerializer } from "./serialization"
 
 const text = "a".repeat(190 + 1)
+const d = new Uint8Array(128 * 1024)
 const dataObj = { type: DataType.text, data: text };
 
 (async () => {
@@ -16,21 +17,29 @@ const dataObj = { type: DataType.text, data: text };
     console.log("encrypt and decrypt with Base256Serializer (default)")
 
     // A
+    console.time("encrypt")
     const message = await encryptAndSign(dataObj, BK, "A")
+    console.timeEnd("encrypt")
     console.log(message)
 
     // B
+    console.time("decrypt")
     const output = await decryptAndVerify(message, AK, "B")
+    console.timeEnd("decrypt")
     console.log(output)
 
     console.log("encrypt and decrypt with BinarySerializer")
 
     // A
+    console.time("encrypt")
     const message1 = await encryptAndSign(dataObj, BK, "A", BinarySerializer)
+    console.timeEnd("encrypt")
     console.log(message1)
 
     // B
+    console.time("decrypt")
     const output1 = await decryptAndVerify(message1, AK, "B", BinarySerializer)
+    console.timeEnd("decrypt")
     console.log(output1)
 
 })()
