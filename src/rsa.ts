@@ -24,12 +24,14 @@ const encryptOpts: RsaOaepParams = {
     name: "RSA-OAEP"
 }
 
-type Usage = "encrypt" | "decrypt" | "sign" | "verify"
+type Usage = "encrypt" | "decrypt" | "sign" | "verify" | "wrapKey" | "unwrapKey"
 const keyUsages: Usage[] = [
     "encrypt",
     "decrypt",
     "sign",
     "verify",
+    "wrapKey",
+    "unwrapKey",
 ]
 
 const usageMap = {
