@@ -34,14 +34,23 @@ const keyUsages: Usage[] = [
     "unwrapKey",
 ]
 
-const usageMap = {
+interface UsageMapItem {
+    public: Usage[]
+    private: Usage[]
+}
+
+interface UsageMap {
+    [algorithm: string]: UsageMapItem
+}
+
+const usageMap: UsageMap = {
     "RSA-OAEP": {
-        public: "encrypt",
-        private: "decrypt",
+        public: ["encrypt", "wrapKey"],
+        private: ["decrypt", "unwrapKey"],
     },
     "RSA-PSS": {
-        public: "verify",
-        private: "sign",
+        public: ["verify"],
+        private: ["sign"],
     },
 }
 
@@ -122,9 +131,9 @@ namespace RSA {
      * @param {RSAKeyAlgorithm} keyAlgorithm
      * @param {Usage} usage
      */
-    export const importKeyObj = async (keyObj: JsonWebKey, keyAlgorithm: RSAKeyAlgorithm, usage: Usage) => {
+    export const importKeyObj = async (keyObj: JsonWebKey, keyAlgorithm: RSAKeyAlgorithm, usageList: Usage[]) => {
         _checkRSAKeyAlgorithm(keyAlgorithm)
-        return subtle.importKey("jwk", keyObj, { name: keyAlgorithm, hash: hashAlgorithm }, true, [usage])
+        return subtle.importKey("jwk", keyObj, { name: keyAlgorithm, hash: hashAlgorithm }, true, usageList)
     }
 
     export const generateRSAKeyPair = async () => {
@@ -190,12 +199,12 @@ namespace RSA {
         _checkRSAKeyAlgorithm(destAlgorithm)
 
         const keyObj = await exportKeyObj(key)
-        const usage = usageMap[destAlgorithm][key.type]
+        const usageList = usageMap[destAlgorithm][key.type]
 
         keyObj.alg = destAlgorithm == "RSA-OAEP" ? "RSA-OAEP-256" : "PS256"
-        keyObj.key_ops = [usage]
+        keyObj.key_ops = usageList
 
-        return importKeyObj(keyObj, destAlgorithm, usage)
+        return importKeyObj(keyObj, destAlgorithm, usageList)
     }
 
     /**

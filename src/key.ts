@@ -25,7 +25,7 @@ namespace KEY {
         const keyData = BASE256.decode(keyE)
         const keyN = new TextDecoder().decode(keyData)
         const keyObj = { alg: "PS256", e: "AQAB", kty: "RSA", n: keyN }
-        const key = await RSA.importKeyObj(keyObj, "RSA-PSS", "verify")
+        const key = await RSA.importKeyObj(keyObj, "RSA-PSS", ["verify"])
         return key
     }
 
@@ -67,7 +67,7 @@ namespace KEY {
             keyObj = keyObjPair.privateKeyObj
         }
 
-        const privateKey = await RSA.importKeyObj(keyObj, "RSA-PSS", "sign")
+        const privateKey = await RSA.importKeyObj(keyObj, "RSA-PSS", ["sign"])
         return privateKey
     }
 
@@ -86,7 +86,7 @@ namespace KEY {
             keyObj = keyObjPair.publicKeyObj
         }
 
-        const publicKey = await RSA.importKeyObj(keyObj, "RSA-PSS", "verify")
+        const publicKey = await RSA.importKeyObj(keyObj, "RSA-PSS", ["verify"])
         return publicKey
     }
 
