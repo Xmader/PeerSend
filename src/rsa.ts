@@ -57,7 +57,8 @@ const usageMap: UsageMap = {
 const maxDataBlockSize = 190  // the maximum block size for RSA 2048 bits with SHA-256 is 190 bytes
 const encryptedBlockSize = 256
 
-type BinaryData = NodeJS.TypedArray | DataView | ArrayBuffer
+type TypedArray = Int8Array | Int16Array | Int32Array | Uint8Array | Uint16Array | Uint32Array | Uint8ClampedArray | Float32Array | Float64Array
+type BinaryData = TypedArray | DataView | ArrayBuffer
 
 // TODO: IE returns CryptoOperation instead of Promise
 

@@ -1,4 +1,5 @@
 // @ts-check
+/* eslint-disable no-unused-vars */
 
 import KEY from "./key"
 import RSA from "./rsa"
@@ -11,6 +12,8 @@ export enum DataType {
     audio = 0x40,
     video = 0x50,
 }
+
+/* eslint-enable */
 
 export interface DataObj {
     type: DataType,

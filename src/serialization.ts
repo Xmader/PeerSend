@@ -1,5 +1,7 @@
 import BASE256 from "./base256"
 
+type TypedArray = Int8Array | Int16Array | Int32Array | Uint8Array | Uint16Array | Uint32Array | Uint8ClampedArray | Float32Array | Float64Array
+
 interface SerializationInit {
     encryptedData: Uint8Array;
     signature: Uint8Array;
@@ -34,7 +36,7 @@ export const Base256Serializer: Serializer<string> = {
 }
 
 
-const _getTotalLength = (...args: NodeJS.TypedArray[]) => {
+const _getTotalLength = (...args: TypedArray[]) => {
     return args.reduce((p, c) => {
         return p + c.byteLength
     }, 0)
