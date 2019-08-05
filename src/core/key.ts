@@ -90,6 +90,15 @@ namespace KEY {
         return publicKey
     }
 
+    export const getKeyPair = async (storeName: string = "self"): Promise<CryptoKeyPair> => {
+        const privateKey = await getPrivateKey(storeName)
+        const publicKey = await getPublicKey(storeName)
+        return {
+            publicKey,
+            privateKey,
+        }
+    }
+
 }
 
 export = KEY

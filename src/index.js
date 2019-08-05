@@ -6,6 +6,7 @@ import "text-encoding"
 
 import Vue from "vue/dist/vue.runtime.esm.js"
 import VueMaterial from "vue-material/dist/vue-material.js"
+// @ts-ignore
 import App from "./App.vue"
 
 // @ts-ignore
