@@ -64,7 +64,7 @@ const pages: PageInfo[] = [
     },
     {
         id: "keys",
-        name: "私钥管理",
+        name: "密钥对管理 (我的密钥对)",
         icon: "account_circle",
     },
     {
