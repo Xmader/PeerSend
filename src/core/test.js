@@ -4,8 +4,9 @@ import { initKeyPair, encryptAndSign, decryptAndVerify, DataType } from "./core"
 import { BinarySerializer } from "./serialization"
 
 const text = "a".repeat(190 + 1)
-const d = new Uint8Array(128 * 1024)
 const dataObj = { type: DataType.text, data: text };
+// const d = new Uint8Array(128 * 1024)
+// const dataObj = { type: DataType.file, data: d };
 
 (async () => {
     const AK = (await initKeyPair("A")).publicKeyE
