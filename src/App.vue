@@ -20,7 +20,10 @@
         </md-whiteframe>
 
         <keep-alive>
-            <the-keys-page v-if="!!isActive('keys')"></the-keys-page>
+            <the-keys-page
+                v-if="!!isActive('keys')"
+                @changeKeyInUse="onChangeKeyPair"
+            ></the-keys-page>
         </keep-alive>
 
         <md-sidenav
@@ -35,7 +38,7 @@
                 <div style="margin-left: 8px; margin-bottom: 0.5em;">
                     © Xmader
                     <br>
-                    Licensed under MIT Licence 
+                    Licensed under MIT Licence
                     <br>
                     https://github.com/Xmader/PeerSend
                 </div>
@@ -77,12 +80,18 @@ const pages: PageInfo[] = [
         name: "密钥对管理 (我的密钥对)",
         icon: "account_circle",
     },
-    {
-        id: "about",
-        name: "关于",
-        icon: "info",
-    },
+    // {
+    //     id: "about",
+    //     name: "关于",
+    //     icon: "info",
+    // },
 ]
+
+type KeyListItem = import("./pages/TheKeysPage.vue").KeyListItem
+
+interface KeyInUseInfo extends KeyListItem {
+    keyPair: CryptoKeyPair;
+}
 
 export default {
     components: {
@@ -95,6 +104,7 @@ export default {
                 active: "md-primary",
             },
             pages,
+            keyInUseInfo: null,
         })
     },
     methods: {
@@ -113,6 +123,13 @@ export default {
                 return p.id == pageId
             })
             return pageInfo && pageInfo.name
+        },
+        onChangeKeyPair(keyPair: CryptoKeyPair, item: KeyListItem) {
+            const keyInUseInfo: KeyInUseInfo = {
+                keyPair,
+                ...item,
+            }
+            this.keyInUseInfo = keyInUseInfo
         },
     },
 }

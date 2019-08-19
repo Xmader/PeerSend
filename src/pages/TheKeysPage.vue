@@ -12,28 +12,24 @@
                     <md-icon :class="isInUse(n) ? 'md-warn' : 'md-primary'">vpn_key</md-icon>
 
                     <div class="md-list-text-container">
-                        <span>{{ item.name }}</span>
                         <span>
-                            <span v-if="isInUse(n)">正在使用, </span>
-                            添加时间: {{ _getLocaleString(item.date)}}
+                            {{ item.name }}
+                            <span
+                                v-if="isInUse(n)"
+                                style="color: rgba(0,0,0,.54); font-size: 14px;"
+                            >
+                                &nbsp;(正在使用)
+                            </span>
+                        </span>
+                        <span>
+                            添加时间: {{ _getLocaleDateString(item.date)}}
                         </span>
                     </div>
-
-                    <!-- TODO: 导入导出 -->
-                    <!--
-                        <md-button
-                            class="md-icon-button md-list-action"
-                            @click="downloadKey(n)"
-                        >
-                            <md-icon>save_alt</md-icon>
-                            <md-tooltip md-direction="left">导出</md-tooltip>
-                        </md-button>
-                    -->
 
                     <template v-if="!isInUse(n)">
                         <md-button
                             class="md-icon-button"
-                            @click="deleteKey(n)"
+                            @click="_openDeleteKeyDialog(n)"
                         >
                             <md-icon>delete</md-icon>
                             <md-tooltip md-direction="top">删除</md-tooltip>
@@ -46,6 +42,17 @@
                             <md-icon>check</md-icon>
                             <md-tooltip md-direction="top">使用此密钥对</md-tooltip>
                         </md-button>
+                    </template>
+
+                    <template v-else>
+                        <!-- TODO: 导入导出 -->
+                        <!-- <md-button
+                            class="md-icon-button"
+                            @click="downloadKey(n)"
+                        >
+                            <md-icon>save_alt</md-icon>
+                            <md-tooltip md-direction="left">导出</md-tooltip>
+                        </md-button> -->
                     </template>
 
                     <md-divider></md-divider>
@@ -99,6 +106,14 @@
             ref="new-key-dialog"
         ></md-dialog-prompt>
 
+        <md-dialog-confirm
+            md-content="确定要删除所选密钥对？"
+            md-ok-text="确定"
+            md-cancel-text="取消"
+            @close="deleteKey"
+            ref="delete-key-dialog"
+        ></md-dialog-confirm>
+
         <md-dialog-alert
             :md-content="alertDialogText"
             md-ok-text="确定"
@@ -111,7 +126,7 @@
 import localforage from "localforage"
 import KEY from "../core/key"
 
-interface KeyListItem {
+export interface KeyListItem {
     name: string;
 
     /** 创建时间 */
@@ -125,20 +140,31 @@ export default {
             keyInUse: 0,
             newKeyName: "",
             alertDialogText: " ",
+            keyToDelete: null,
+            eventNames: [
+                "updateKeyInUse",
+                "changeKeyInUse",
+            ],
         })
     },
     methods: {
-        _getLocaleString(date: Date) {
+        _getLocaleDateString(date: Date) {
             return new Date(date).toLocaleString()
         },
         async _emitKeyInUseEvent(n: number) {
             const item: KeyListItem = this.keyList[n]
             const keyPair = await KEY.getKeyPair(item.name)
-            this.$emit("updateKeyInUse", keyPair, item)
+            this.eventNames.forEach((name: string) => {
+                this.$emit(name, keyPair, item)
+            })
         },
         _openAddKeyDialog() {
             this.newKeyName = new Date().toISOString()
             this.$refs["new-key-dialog"].open()
+        },
+        _openDeleteKeyDialog(n: number) {
+            this.keyToDelete = n
+            this.$refs["delete-key-dialog"].open()
         },
         _openAlertDialog(message: string) {
             this.alertDialogText = message
@@ -150,7 +176,9 @@ export default {
                 const name: string = this.newKeyName
 
                 const nameExists = keyList.some((k) => {
-                    return k.name == name
+                    if (k && k.name) {
+                        return k.name == name
+                    }
                 })
 
                 if (!name) {
@@ -198,12 +226,14 @@ export default {
         async saveKeyInUse() {
             await localforage.setItem("keyInUse", this.keyInUse)
         },
-        deleteKey(n: number) {
-            const keyList: KeyListItem[] = this.keyList
-            this.keyList = keyList.map((v, index) => {
-                return index !== n ? v : null
-            })
-            this.saveKeyList()
+        deleteKey(dialogState: "ok" | "cancel") {
+            if (dialogState == "ok") {
+                const keyList: KeyListItem[] = this.keyList
+                this.keyList = keyList.map((item, index) => {
+                    return index !== this.keyToDelete ? item : null
+                })
+                this.saveKeyList()
+            }
         },
         isInUse(n: number) {
             return n == this.keyInUse
