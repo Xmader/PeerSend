@@ -19,12 +19,10 @@
             </md-toolbar>
         </md-whiteframe>
 
-        <keep-alive>
-            <the-keys-page
-                v-if="!!isActive('keys')"
-                @changeKeyInUse="onChangeKeyPair"
-            ></the-keys-page>
-        </keep-alive>
+        <the-keys-page
+            v-show="!!isActive('keys')"
+            @changeKeyInUse="onChangeSelfKeyPair"
+        ></the-keys-page>
 
         <md-sidenav
             class="md-left md-fixed"
@@ -124,7 +122,7 @@ export default {
             })
             return pageInfo && pageInfo.name
         },
-        onChangeKeyPair(keyPair: CryptoKeyPair, item: KeyListItem) {
+        onChangeSelfKeyPair(keyPair: CryptoKeyPair, item: KeyListItem) {
             const keyInUseInfo: KeyInUseInfo = {
                 keyPair,
                 ...item,
