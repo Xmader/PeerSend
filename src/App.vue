@@ -19,7 +19,9 @@
             </md-toolbar>
         </md-whiteframe>
 
-        <the-keys-page v-if="!!isActive('keys')"></the-keys-page>
+        <keep-alive>
+            <the-keys-page v-if="!!isActive('keys')"></the-keys-page>
+        </keep-alive>
 
         <md-sidenav
             class="md-left md-fixed"
@@ -28,6 +30,14 @@
             <md-toolbar class="md-large">
                 <div class="md-toolbar-container">
                     <h3 class="md-title">PeerSend</h3>
+                </div>
+
+                <div style="margin-left: 8px; margin-bottom: 0.5em;">
+                    © Xmader
+                    <br>
+                    Licensed under MIT Licence 
+                    <br>
+                    https://github.com/Xmader/PeerSend
                 </div>
             </md-toolbar>
 
