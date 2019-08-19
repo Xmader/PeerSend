@@ -29,7 +29,7 @@
                     <template v-if="!isInUse(n)">
                         <md-button
                             class="md-icon-button"
-                            @click="_openDeleteKeyDialog(n)"
+                            @click="deleteKey(n)"
                         >
                             <md-icon>delete</md-icon>
                             <md-tooltip md-direction="top">删除</md-tooltip>
@@ -76,7 +76,7 @@
             <md-button
                 class="md-raised md-primary"
                 style="width: 100%;"
-                @click="_openAddKeyDialog"
+                @click="addKey"
             >
                 生成并添加新密钥对
             </md-button>
@@ -101,7 +101,6 @@
             :md-esc-to-close="false"
             :md-click-outside-to-close="false"
             :md-input-maxlength="30"
-            @close="addKey"
             v-model="newKeyName"
             ref="new-key-dialog"
         ></md-dialog-prompt>
@@ -110,7 +109,6 @@
             md-content="确定要删除所选密钥对？"
             md-ok-text="确定"
             md-cancel-text="取消"
-            @close="deleteKey"
             ref="delete-key-dialog"
         ></md-dialog-confirm>
 
@@ -133,6 +131,8 @@ export interface KeyListItem {
     date: Date;
 }
 
+type DialogStates = "ok" | "cancel"
+
 export default {
     data() {
         return ({
@@ -140,7 +140,6 @@ export default {
             keyInUse: 0,
             newKeyName: "",
             alertDialogText: " ",
-            keyToDelete: null,
             eventNames: [
                 "updateKeyInUse",
                 "changeKeyInUse",
@@ -158,19 +157,24 @@ export default {
                 this.$emit(name, keyPair, item)
             })
         },
-        _openAddKeyDialog() {
-            this.newKeyName = new Date().toISOString()
-            this.$refs["new-key-dialog"].open()
-        },
-        _openDeleteKeyDialog(n: number) {
-            this.keyToDelete = n
-            this.$refs["delete-key-dialog"].open()
+        async _waitForDialogClose(ref: string): Promise<DialogStates> {
+            const dialog = this.$refs[ref]
+            dialog.open()
+            return new Promise((resolve) => {
+                dialog.$on("close", (dialogState: DialogStates) => {
+                    resolve(dialogState)
+                })
+            })
         },
         _openAlertDialog(message: string) {
             this.alertDialogText = message
             this.$refs["alert-dialog"].open()
         },
-        async addKey(dialogState: "ok" | "cancel") {
+        async addKey() {
+            this.newKeyName = new Date().toISOString()
+
+            const dialogState: DialogStates = await this._waitForDialogClose("new-key-dialog")
+
             if (dialogState == "ok") {
                 const keyList: KeyListItem[] = this.keyList
                 const name: string = this.newKeyName
@@ -226,11 +230,12 @@ export default {
         async saveKeyInUse() {
             await localforage.setItem("keyInUse", this.keyInUse)
         },
-        deleteKey(dialogState: "ok" | "cancel") {
+        async deleteKey(keyToDelete: number) {
+            const dialogState: DialogStates = await this._waitForDialogClose("delete-key-dialog")
             if (dialogState == "ok") {
                 const keyList: KeyListItem[] = this.keyList
                 this.keyList = keyList.map((item, index) => {
-                    return index !== this.keyToDelete ? item : null
+                    return index !== keyToDelete ? item : null
                 })
                 this.saveKeyList()
             }
