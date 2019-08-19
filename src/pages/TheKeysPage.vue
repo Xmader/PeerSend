@@ -45,14 +45,13 @@
                     </template>
 
                     <template v-else>
-                        <!-- TODO: 导入导出 -->
-                        <!-- <md-button
+                        <md-button
                             class="md-icon-button"
                             @click="downloadKey(n)"
                         >
                             <md-icon>save_alt</md-icon>
                             <md-tooltip md-direction="left">导出</md-tooltip>
-                        </md-button> -->
+                        </md-button>
                     </template>
 
                     <md-divider></md-divider>
@@ -82,17 +81,15 @@
             </md-button>
         </md-layout>
 
-        <!-- 
-            TODO: 导入导出
-            <md-layout>
-                <md-button
-                    class="md-raised md-primary"
-                    style="width: 100%;"
-                >
-                    导入密钥对
-                </md-button>
-            </md-layout> 
-        -->
+        <md-layout>
+            <md-button
+                class="md-raised md-primary"
+                style="width: 100%;"
+                @click="uploadKey"
+            >
+                导入密钥对
+            </md-button>
+        </md-layout>
 
         <md-dialog-prompt
             md-title="生成并添加新密钥对"
@@ -112,6 +109,8 @@
             ref="delete-key-dialog"
         ></md-dialog-confirm>
 
+        <upload-key-dialog ref="upload-key-dialog"></upload-key-dialog>
+
         <md-dialog-alert
             :md-content="alertDialogText"
             md-ok-text="确定"
@@ -122,7 +121,10 @@
 
 <script lang="ts">
 import localforage from "localforage"
+import FileSaver from "file-saver"
 import KEY from "../core/key"
+import RSA from "../core/rsa"
+import UploadKeyDialog, { KeyFileExt } from "./UploadKeyDialog.vue"
 
 export interface KeyListItem {
     name: string;
@@ -131,9 +133,61 @@ export interface KeyListItem {
     date: Date;
 }
 
+export interface KeyInfo extends KeyListItem {
+    keyPair: CryptoKeyPair;
+}
+
 type DialogStates = "ok" | "cancel"
 
+export namespace KeyInfoSerializer {
+
+    export interface SerializedObj {
+        name: string;
+        date: string;
+        keyPair: {
+            privateKey: JsonWebKey;
+            publicKey: JsonWebKey;
+        };
+    }
+
+    const N = 0x27
+
+    /** exportKeyInfoData */
+    export const serialize = async (keyInfo: KeyInfo): Promise<Uint8Array> => {
+        const { keyPair: { privateKey, publicKey }, name, date } = keyInfo
+        const obj: SerializedObj = {
+            name,
+            date: new Date(date).toISOString(),
+            keyPair: {
+                privateKey: await RSA.exportKeyObj(privateKey),
+                publicKey: await RSA.exportKeyObj(publicKey),
+            }
+        }
+        const json = JSON.stringify(obj)
+        const data = new TextEncoder().encode(json).map(v => v ^ N)
+        return data
+    }
+
+    export const deserialize = async (keyInfoData: Uint8Array): Promise<KeyInfo> => {
+        const json = new TextDecoder().decode(keyInfoData.map(v => v ^ N))
+        const obj: SerializedObj = JSON.parse(json)
+        const { keyPair: { privateKey: privateKeyObj, publicKey: publicKeyObj }, name, date } = obj
+        return {
+            name,
+            date: new Date(date),
+            keyPair: {
+                privateKey: await RSA.importKeyObj(privateKeyObj, "RSA-PSS", ["sign"]),
+                publicKey: await RSA.importKeyObj(publicKeyObj, "RSA-PSS", ["verify"]),
+            }
+        }
+    }
+
+}
+
 export default {
+    components: {
+        UploadKeyDialog,
+    },
     data() {
         return ({
             keyList: null,
@@ -151,24 +205,49 @@ export default {
             return new Date(date).toLocaleString()
         },
         async _emitKeyInUseEvent(n: number) {
-            const item: KeyListItem = this.keyList[n]
-            const keyPair = await KEY.getKeyPair(item.name)
+            const keyInfo: KeyInfo = await this.getKeyInfoByN(n)
             this.eventNames.forEach((name: string) => {
-                this.$emit(name, keyPair, item)
+                this.$emit(name, keyInfo)
             })
         },
-        async _waitForDialogClose(ref: string): Promise<DialogStates> {
+        async _waitForDialogEvent(ref: string, event: string): Promise<any[]> {
             const dialog = this.$refs[ref]
             dialog.open()
             return new Promise((resolve) => {
-                dialog.$on("close", (dialogState: DialogStates) => {
-                    resolve(dialogState)
+                dialog.$on(event, (...args) => {
+                    resolve(args)
                 })
             })
+        },
+        async _waitForDialogClose(ref: string): Promise<DialogStates> {
+            const [dialogState]: [DialogStates] = await this._waitForDialogEvent(ref, "close")
+            return dialogState
         },
         _openAlertDialog(message: string) {
             this.alertDialogText = message
             this.$refs["alert-dialog"].open()
+        },
+        _isNameExisted(name: string, keyList: KeyListItem[] = this.keyList) {
+            return keyList.some((item) => {
+                if (item && item.name) {
+                    return item.name == name
+                }
+            })
+        },
+        async _addKeyListItem(item: KeyListItem) {
+            const keyList: KeyListItem[] = this.keyList
+            keyList.push(item)
+            await this.saveKeyList()
+            await this.setInUse(keyList.length - 1)
+        },
+        async getKeyInfoByN(n: number) {
+            const item: KeyListItem = this.keyList[n]
+            const keyPair = await KEY.getKeyPair(item.name)
+            const keyInfo: KeyInfo = {
+                keyPair,
+                ...item,
+            }
+            return keyInfo
         },
         async addKey() {
             this.newKeyName = new Date().toISOString()
@@ -176,14 +255,8 @@ export default {
             const dialogState: DialogStates = await this._waitForDialogClose("new-key-dialog")
 
             if (dialogState == "ok") {
-                const keyList: KeyListItem[] = this.keyList
                 const name: string = this.newKeyName
-
-                const nameExists = keyList.some((k) => {
-                    if (k && k.name) {
-                        return k.name == name
-                    }
-                })
+                const nameExists: boolean = this._isNameExisted(name)
 
                 if (!name) {
                     this._openAlertDialog("请输入密钥名称")
@@ -195,14 +268,10 @@ export default {
 
                 await KEY.getKeyPair(name)
 
-                keyList.push({
+                await this._addKeyListItem({
                     name: name,
                     date: new Date()
                 })
-
-                await this.saveKeyList()
-
-                await this.setInUse(keyList.length - 1)
             }
         },
         async loadKeyList() {
@@ -239,6 +308,28 @@ export default {
                 })
                 this.saveKeyList()
             }
+        },
+        async downloadKey(n: number) {
+            const keyInfo: KeyInfo = await this.getKeyInfoByN(n)
+            const keyInfoData = await KeyInfoSerializer.serialize(keyInfo)
+            FileSaver.saveAs(new Blob([keyInfoData]), `${keyInfo.name}${KeyFileExt}`)
+        },
+        async uploadKey() {
+            const [keyInfo]: [KeyInfo] = await this._waitForDialogEvent("upload-key-dialog", "uploaded")
+
+            const { name, date } = keyInfo
+            const nameExists: boolean = this._isNameExisted(name)
+            if (nameExists) {
+                this._openAlertDialog("存在同名密钥对")
+                return
+            }
+
+            await KEY.saveKeyPair(name, keyInfo.keyPair)
+
+            await this._addKeyListItem({
+                name,
+                date,
+            })
         },
         isInUse(n: number) {
             return n == this.keyInUse

@@ -78,6 +78,11 @@ const pages: PageInfo[] = [
         name: "密钥对管理 (我的密钥对)",
         icon: "account_circle",
     },
+    {
+        id: "peers",
+        name: "收发目标管理",
+        icon: "account_circle",
+    },
     // {
     //     id: "about",
     //     name: "关于",
@@ -86,10 +91,7 @@ const pages: PageInfo[] = [
 ]
 
 type KeyListItem = import("./pages/TheKeysPage.vue").KeyListItem
-
-interface KeyInUseInfo extends KeyListItem {
-    keyPair: CryptoKeyPair;
-}
+type KeyInfo = import("./pages/TheKeysPage.vue").KeyInfo
 
 export default {
     components: {
@@ -122,11 +124,7 @@ export default {
             })
             return pageInfo && pageInfo.name
         },
-        onChangeSelfKeyPair(keyPair: CryptoKeyPair, item: KeyListItem) {
-            const keyInUseInfo: KeyInUseInfo = {
-                keyPair,
-                ...item,
-            }
+        onChangeSelfKeyPair(keyInUseInfo: KeyInfo) {
             this.keyInUseInfo = keyInUseInfo
         },
     },

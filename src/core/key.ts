@@ -10,19 +10,26 @@ namespace KEY {
     /**
      * @param {CryptoKey} key 
      */
-    export const exportPublicKeyE = async (key: CryptoKey) => {
+    export const exportPublicKeyData = async (key: CryptoKey) => {
         const keyObj = await RSA.exportKeyObj(key)
         const keyN = keyObj.n
         const keyData = new TextEncoder().encode(keyN)
+        return keyData
+    }
+
+    /**
+     * @param {CryptoKey} key 
+     */
+    export const exportPublicKeyE = async (key: CryptoKey) => {
+        const keyData = await exportPublicKeyData(key)
         const keyE = BASE256.encode(keyData)
         return keyE
     }
 
     /**
-     * @param {string} keyE 
+     * @param {Uint8Array} keyData 
      */
-    export const importPublicKeyFromE = async (keyE: string) => {
-        const keyData = BASE256.decode(keyE)
+    export const importPublicKeyFromKeyData = async (keyData: Uint8Array) => {
         const keyN = new TextDecoder().decode(keyData)
         const keyObj = { alg: "PS256", e: "AQAB", kty: "RSA", n: keyN }
         const key = await RSA.importKeyObj(keyObj, "RSA-PSS", ["verify"])
@@ -30,12 +37,20 @@ namespace KEY {
     }
 
     /**
-     * 生成自己的密钥对，如果存在，则强制覆盖已有的密钥对
-     * @param {string=} storeName 
+     * @param {string} keyE 
      */
-    export const generateAndSaveKeyPair = async (storeName: string = "self") => {
-        const keyPair = await RSA.generateRSAKeyPair()
+    export const importPublicKeyFromE = async (keyE: string) => {
+        const keyData = BASE256.decode(keyE)
+        const key = await importPublicKeyFromKeyData(keyData)
+        return key
+    }
 
+    /**
+     * 储存密钥对，如果存在同名的密钥对，则强制覆盖
+     * @param {string} storeName 
+     * @param {CryptoKeyPair} keyPair 
+     */
+    export const saveKeyPair = async (storeName: string, keyPair: CryptoKeyPair) => {
         const privateKeyObj = await RSA.exportKeyObj(keyPair.privateKey)
         const publicKeyObj = await RSA.exportKeyObj(keyPair.publicKey)
 
@@ -50,6 +65,15 @@ namespace KEY {
             privateKeyObj,
             publicKeyObj,
         }
+    }
+
+    /**
+     * 生成自己的密钥对，如果存在，则强制覆盖已有的密钥对
+     * @param {string=} storeName 
+     */
+    export const generateAndSaveKeyPair = async (storeName: string = "self") => {
+        const keyPair = await RSA.generateRSAKeyPair()
+        return saveKeyPair(storeName, keyPair)
     }
 
     /**
