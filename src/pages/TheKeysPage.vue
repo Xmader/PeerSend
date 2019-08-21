@@ -52,6 +52,14 @@
                             <md-icon>save_alt</md-icon>
                             <md-tooltip md-direction="left">导出</md-tooltip>
                         </md-button>
+
+                        <md-button
+                            class="md-icon-button"
+                            @click="showPublicKeyE(n)"
+                        >
+                            <md-icon>visibility</md-icon>
+                            <md-tooltip md-direction="left">显示公钥</md-tooltip>
+                        </md-button>
                     </template>
 
                     <md-divider></md-divider>
@@ -111,7 +119,10 @@
 
         <upload-key-dialog ref="upload-key-dialog"></upload-key-dialog>
 
+        <show-public-key-e-dialog ref="key-e-dialog"></show-public-key-e-dialog>
+
         <md-dialog-alert
+            :md-title="alertDialogTitle"
             :md-content="alertDialogText"
             md-ok-text="确定"
             ref="alert-dialog"
@@ -125,6 +136,7 @@ import FileSaver from "file-saver"
 import KEY from "../core/key"
 import RSA from "../core/rsa"
 import UploadKeyDialog, { KeyFileExt } from "./UploadKeyDialog.vue"
+import ShowPublicKeyEDialog from "./ShowPublicKeyEDialog.vue"
 
 export interface KeyListItem {
     name: string;
@@ -187,6 +199,7 @@ export namespace KeyInfoSerializer {
 export default {
     components: {
         UploadKeyDialog,
+        ShowPublicKeyEDialog,
     },
     data() {
         return ({
@@ -194,9 +207,11 @@ export default {
             keyInUse: 0,
             newKeyName: "",
             alertDialogText: " ",
+            alertDialogTitle: undefined,
             eventNames: [
                 "updateKeyInUse",
                 "changeKeyInUse",
+                "changeKey"
             ],
         })
     },
@@ -223,8 +238,9 @@ export default {
             const [dialogState]: [DialogStates] = await this._waitForDialogEvent(ref, "close")
             return dialogState
         },
-        _openAlertDialog(message: string) {
+        _openAlertDialog(message: string, title?: string) {
             this.alertDialogText = message
+            this.alertDialogTitle = title || undefined
             this.$refs["alert-dialog"].open()
         },
         _isNameExisted(name: string, keyList: KeyListItem[] = this.keyList) {
@@ -330,6 +346,11 @@ export default {
                 name,
                 date,
             })
+        },
+        async showPublicKeyE(n: number) {
+            const keyInfo: KeyInfo = await this.getKeyInfoByN(n)
+            const publicKeyE = await KEY.exportPublicKeyE(keyInfo.keyPair.publicKey)
+            this.$refs["key-e-dialog"].open(publicKeyE)
         },
         isInUse(n: number) {
             return n == this.keyInUse
