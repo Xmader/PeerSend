@@ -6,11 +6,14 @@ import "text-encoding"
 
 import Vue from "vue/dist/vue.runtime.esm.js"
 import VueMaterial from "vue-material/dist/vue-material.js"
+import VueClipboard from "vue-clipboard2"
 // @ts-ignore
 import App from "./App.vue"
 
 // @ts-ignore
 Vue.use(VueMaterial)
+// @ts-ignore
+Vue.use(VueClipboard)
 
 // @ts-ignore
 Vue.material.registerTheme("default", {

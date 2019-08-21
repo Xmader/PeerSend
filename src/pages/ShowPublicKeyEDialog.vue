@@ -9,7 +9,12 @@
         </md-dialog-content>
 
         <md-dialog-actions>
-            <md-button class="md-primary">
+            <md-button
+                class="md-primary"
+                v-clipboard:copy="keyE"
+                v-clipboard:success="() => handleCopyStatus(true)"
+                v-clipboard:error="() => handleCopyStatus(false)"
+            >
                 复制
             </md-button>
 
@@ -20,6 +25,17 @@
                 关闭
             </md-button>
         </md-dialog-actions>
+
+        <md-snackbar
+            ref="snackbar"
+            md-position="top center"
+        >
+            <span>复制{{ copySucceeded ? "成功" : "失败"}}！</span>
+            <md-button
+                class="md-accent"
+                @click="$refs.snackbar.close()"
+            >知道了</md-button>
+        </md-snackbar>
     </md-dialog>
 </template>
 
@@ -27,6 +43,7 @@
 export default {
     data: () => ({
         keyE: null,
+        copySucceeded: null,
     }),
     methods: {
         open(keyE: string) {
@@ -42,6 +59,10 @@ export default {
             this.keyE = null
             this.$refs["dialog"].close()
             this.$emit("close")
+        },
+        handleCopyStatus(status: boolean) {
+            this.copySucceeded = status
+            this.$refs["snackbar"].open()
         },
     },
 }
