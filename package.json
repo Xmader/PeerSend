@@ -25,8 +25,9 @@
         ]
     },
     "scripts": {
+        "install:web": "cd src && npm install",
         "preinstall": "sh ./tools/cordova.sh init",
-        "postinstall": "cd src && npm install",
+        "postinstall": "npm run install:web",
         
         "build": "cd src && npm run build",
         "watch": "cd src && npm run watch",

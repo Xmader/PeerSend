@@ -3,7 +3,8 @@
     "main": "index.js",
     "author": "Xmader",
     "scripts": {
-        "build": "parcel build index.js -d ../www/dist --public-url ./ --detailed-report",
+        "clean": "rimraf ../www/dist",
+        "build": "npm run clean && parcel build index.js -d ../www/dist --public-url ./ --detailed-report --no-source-maps",
         "watch": "parcel watch index.js -d ../www/dist --public-url ./ ",
         "http-server": "http-server ../www -p 8082 -c-1"
     },
@@ -22,6 +23,7 @@
         "core-js": "^3.1.4",
         "http-server": "^0.11.1",
         "parcel-bundler": "^1.12.3",
+        "rimraf": "^3.0.0",
         "text-encoding": "^0.7.0",
         "typescript": "^3.5.3",
         "vue-hot-reload-api": "^2.3.3",
