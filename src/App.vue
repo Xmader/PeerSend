@@ -21,8 +21,13 @@
 
         <the-keys-page
             v-show="!!isActive('keys')"
-            @changeKeyInUse="onChangeSelfKeyPair"
+            @changeKey="onChangeSelfKeyPair"
         ></the-keys-page>
+
+        <the-peers-page
+            v-show="!!isActive('peers')"
+            @changePeer="onChangePeer"
+        ></the-peers-page>
 
         <md-sidenav
             class="md-left md-fixed"
@@ -60,6 +65,7 @@
 <script lang="ts">
 // @ts-ignore
 import TheKeysPage from "./pages/TheKeysPage.vue"
+import ThePeersPage from "./pages/ThePeersPage.vue"
 
 interface PageInfo {
     id: string;
@@ -75,13 +81,13 @@ const pages: PageInfo[] = [
     },
     {
         id: "keys",
-        name: "密钥对管理 (我的密钥对)",
-        icon: "account_circle",
+        name: "我的密钥对",
+        icon: "face",
     },
     {
         id: "peers",
         name: "收发目标管理",
-        icon: "account_circle",
+        icon: "people",
     },
     // {
     //     id: "about",
@@ -92,10 +98,12 @@ const pages: PageInfo[] = [
 
 type KeyListItem = import("./pages/TheKeysPage.vue").KeyListItem
 type KeyInfo = import("./pages/TheKeysPage.vue").KeyInfo
+type PeerInfo = import("./pages/ThePeersPage.vue").PeerInfo
 
 export default {
     components: {
         TheKeysPage,
+        ThePeersPage,
     },
     data() {
         return ({
@@ -105,6 +113,7 @@ export default {
             },
             pages,
             keyInUseInfo: null,
+            peerInUseInfo: null,
         })
     },
     methods: {
@@ -126,6 +135,9 @@ export default {
         },
         onChangeSelfKeyPair(keyInUseInfo: KeyInfo) {
             this.keyInUseInfo = keyInUseInfo
+        },
+        onChangePeer(peer: PeerInfo) {
+            this.peerInUseInfo = peer
         },
     },
 }

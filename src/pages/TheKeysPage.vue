@@ -137,6 +137,8 @@ import KEY from "../core/key"
 import RSA from "../core/rsa"
 import UploadKeyDialog, { KeyFileExt } from "./UploadKeyDialog.vue"
 import ShowPublicKeyEDialog from "./ShowPublicKeyEDialog.vue"
+import { DialogStates } from "../utils/common-types"
+import dialogEventMixin from "../utils/dialog-event-mixin"
 
 export interface KeyListItem {
     name: string;
@@ -148,8 +150,6 @@ export interface KeyListItem {
 export interface KeyInfo extends KeyListItem {
     keyPair: CryptoKeyPair;
 }
-
-type DialogStates = "ok" | "cancel"
 
 export namespace KeyInfoSerializer {
 
@@ -201,6 +201,9 @@ export default {
         UploadKeyDialog,
         ShowPublicKeyEDialog,
     },
+    mixins: [
+        dialogEventMixin,
+    ],
     data() {
         return ({
             keyList: null,
@@ -224,19 +227,6 @@ export default {
             this.eventNames.forEach((name: string) => {
                 this.$emit(name, keyInfo)
             })
-        },
-        async _waitForDialogEvent(ref: string, event: string): Promise<any[]> {
-            const dialog = this.$refs[ref]
-            dialog.open()
-            return new Promise((resolve) => {
-                dialog.$on(event, (...args) => {
-                    resolve(args)
-                })
-            })
-        },
-        async _waitForDialogClose(ref: string): Promise<DialogStates> {
-            const [dialogState]: [DialogStates] = await this._waitForDialogEvent(ref, "close")
-            return dialogState
         },
         _openAlertDialog(message: string, title?: string) {
             this.alertDialogText = message
