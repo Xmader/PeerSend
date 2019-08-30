@@ -60,6 +60,12 @@ typings/
 # next.js build output
 .next
 
+# parcel build cache
 .cache
 
-dist
+# cordova
+/platforms
+/plugins
+
+/dist
+/www/dist
