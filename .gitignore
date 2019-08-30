@@ -69,3 +69,5 @@ typings/
 
 /dist
 /www/dist
+
+package-lock.json
