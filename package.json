@@ -31,7 +31,6 @@
         "build": "cd src && npm run build",
         "watch": "cd src && npm run watch",
         "http-server": "cd src && npm run http-server",
-        "dev": "npm run watch && npm run http-server",
 
         "start": "npm run build && cordova run android",
         "buildApk": "npm run build && cordova build android --archs=arm --device",
