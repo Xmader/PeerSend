@@ -7,6 +7,7 @@
         :content-subhead="`创建时间: ${_getLocaleDateString(keyInUseInfo.date)}`"
         actionText="更换密钥"
         @actionClick="onChangeKeyBtnClick"
+        :disabled="disabled"
     ></xm-icon-card>
 
     <xm-icon-card
@@ -18,6 +19,7 @@
         content-subhead="一定是没有添加吧"
         actionText="添加密钥"
         @actionClick="onChangeKeyBtnClick"
+        :disabled="disabled"
     ></xm-icon-card>
 </template>
 
@@ -36,12 +38,26 @@ export default {
     props: {
         /** type: KeyInfo */
         keyInUseInfo: Object,
+
+        crypoTypeText: {
+            type: String,
+            required: true,
+            validator(value: string) {
+                return ["加密", "解密"].includes(value)
+            }
+        },
+
+        disabled: Boolean,
     },
     data() {
         return ({
-            title: "使用此密钥加密：",
             icon: "vpn_key",
         })
+    },
+    computed: {
+        title() {
+            return `使用此密钥${this.crypoTypeText}：`
+        }
     },
     methods: {
         onChangeKeyBtnClick() {

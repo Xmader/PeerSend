@@ -20,6 +20,10 @@ export interface DataObj {
     data: string | Uint8Array
 }
 
+export interface ResultDataObj extends DataObj {
+    verified?: boolean;
+}
+
 const _prefixDataByte = (data: Uint8Array, byte: number) => {
     const buf = new Uint8Array(data.byteLength + 1)
     buf[0] = byte
@@ -77,7 +81,7 @@ export const decryptAndVerify2 = async <T = string>(
     const rawData = decryptedPrefixedData.slice(1)
     const type = decryptedPrefixedData[0]
 
-    const dataObj: DataObj = {
+    const dataObj: ResultDataObj = {
         type,
         data: type == DataType.text
             ? new TextDecoder().decode(rawData)
@@ -88,12 +92,17 @@ export const decryptAndVerify2 = async <T = string>(
         return dataObj
     }
 
-    const senderPublicKey = await KEY.importPublicKeyFromE(senderPublicKeyE)
-    const verified = RSA.verify(senderPublicKey, signature, decryptedPrefixedData)
-
-    if (verified) {
-        return dataObj
+    let verified: boolean
+    try {
+        const senderPublicKey = await KEY.importPublicKeyFromE(senderPublicKeyE)
+        verified = await RSA.verify(senderPublicKey, signature, decryptedPrefixedData)
+    } catch (err) {
+        console.error(err)
     }
+
+    dataObj.verified = verified
+    return dataObj
+
 }
 
 /**

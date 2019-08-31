@@ -28,13 +28,15 @@
             </md-toolbar>
         </md-whiteframe>
 
-        <the-encrypt-page
-            v-if="!!isActive('encrypt')"
+        <the-crypto-page
+            v-if="!!isActive('encrypt') || !!isActive('decrypt')"
+            :key="activePage"
+            :page="activePage"
             :key-in-use-info="keyInUseInfo"
             :peer-in-use-info="peerInUseInfo"
             @changePageReq="switchPage"
             :actionMode="actionMode"
-        ></the-encrypt-page>
+        ></the-crypto-page>
 
         <the-keys-page
             v-show="!!isActive('keys')"
@@ -84,7 +86,7 @@
 <script lang="ts">
 import TheKeysPage, { KeyInfo } from "./pages/TheKeysPage.vue"
 import ThePeersPage, { PeerInfo } from "./pages/ThePeersPage.vue"
-import TheEncryptPage from "./pages/TheEncryptPage.vue"
+import TheCryptoPage from "./pages/TheCryptoPage.vue"
 import TheAboutPage from "./pages/TheAboutPage.vue"
 
 import { DeviceReady } from "./utils/cordova-utils"
@@ -127,7 +129,7 @@ export default {
     components: {
         TheKeysPage,
         ThePeersPage,
-        TheEncryptPage,
+        TheCryptoPage,
         TheAboutPage,
     },
     data() {
@@ -192,6 +194,7 @@ export default {
 
         await DeviceReady.waitForCordovaLoaded()
         this.actionMode = true
+        this.activePage = "encrypt"
     },
 }
 </script>

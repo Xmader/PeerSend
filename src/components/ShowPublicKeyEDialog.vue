@@ -26,19 +26,20 @@
             </md-button>
         </md-dialog-actions>
 
-        <copy-snackbar
+        <xm-snackbar
             ref="snackbar"
+            text="复制"
             :status="copySucceeded"
-        ></copy-snackbar>
+        ></xm-snackbar>
     </md-dialog>
 </template>
 
 <script lang="ts">
-import CopySnackbar from "./CopySnackbar.vue"
+import xmSnackbar from "./xmSnackbar.vue"
 
 export default {
     components: {
-        CopySnackbar
+        xmSnackbar
     },
     data: () => ({
         keyE: null,

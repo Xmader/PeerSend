@@ -3,7 +3,7 @@
         ref="snackbar"
         md-position="top center"
     >
-        <span>复制{{ status ? "成功" : "失败"}}！</span>
+        <span>{{ text }}{{ status ? "成功" : "失败"}}！</span>
         <md-button
             class="md-accent"
             @click="$refs.snackbar.close()"
@@ -14,6 +14,10 @@
 <script lang="ts">
 export default {
     props: {
+        text: {
+            type: String,
+            required: true,
+        },
         /** copySucceeded */
         status: {
             // type: Boolean,
@@ -21,7 +25,7 @@ export default {
         },
     },
     methods: {
-        async open() {
+        open() {
             this.$refs["snackbar"].open()
             this.$emit("open")
         },

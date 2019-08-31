@@ -17,6 +17,7 @@
             <md-button
                 class="md-primary"
                 @click="onActionClick"
+                :disabled="disabled"
             >{{ actionText }}</md-button>
         </md-card-actions>
 
@@ -44,6 +45,7 @@ export default {
             type: Boolean,
             default: true,
         },
+        disabled: Boolean,
     },
     methods: {
         onActionClick() {

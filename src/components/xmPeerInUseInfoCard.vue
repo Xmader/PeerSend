@@ -5,8 +5,9 @@
         :icon="icon"
         :content="peerInUseInfo.name"
         :content-subhead="`创建时间: ${_getLocaleDateString(peerInUseInfo.date)}`"
-        actionText="更换接收方"
+        :actionText="'更换' + peerTypeText"
         @actionClick="onChangePeerBtnClick"
+        :disabled="disabled"
     ></xm-icon-card>
 
     <xm-icon-card
@@ -14,10 +15,11 @@
         :active="false"
         :title="title"
         :icon="icon"
-        content="无接收方"
+        :content="'无' + peerTypeText"
         content-subhead="一定是没有添加吧"
-        actionText="添加接收方"
+        :actionText="'添加' + peerTypeText"
         @actionClick="onChangePeerBtnClick"
+        :disabled="disabled"
     ></xm-icon-card>
 </template>
 
@@ -36,12 +38,33 @@ export default {
     props: {
         /** type: PeerInfo */
         peerInUseInfo: Object,
+
+        page: {
+            type: String,
+            required: true,
+            validator(value: string) {
+                return ["encrypt", "decrypt"].includes(value)
+            }
+        },
+
+        disabled: Boolean,
     },
     data() {
         return ({
-            title: "发送到：",
-            icon:"person",
+            icon: "person",
         })
+    },
+    computed: {
+        title() {
+            return this.page == "encrypt"
+                ? "发送到："
+                : "发送方："
+        },
+        peerTypeText() {
+            return this.page == "encrypt"
+                ? "接收方"
+                : "发送方"
+        },
     },
     methods: {
         onChangePeerBtnClick() {
