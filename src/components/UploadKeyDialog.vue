@@ -37,7 +37,7 @@
 </template>
 
 <script lang="ts">
-import { KeyInfoSerializer } from "./TheKeysPage.vue"
+import { KeyInfoSerializer } from "../pages/TheKeysPage.vue"
 
 export const KeyFileExt = ".keyinfo"
 

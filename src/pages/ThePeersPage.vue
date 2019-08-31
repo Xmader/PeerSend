@@ -30,6 +30,14 @@
                     <template v-if="!isInUse(n)">
                         <md-button
                             class="md-icon-button"
+                            @click="deletePeer(n)"
+                        >
+                            <md-icon>delete</md-icon>
+                            <md-tooltip md-direction="top">删除</md-tooltip>
+                        </md-button>
+
+                        <md-button
+                            class="md-icon-button"
                             @click="setInUse(n)"
                         >
                             <md-icon>check</md-icon>
@@ -38,6 +46,7 @@
                     </template>
 
                     <md-button
+                        v-else
                         class="md-icon-button"
                         @click="showPublicKeyE(n)"
                     >
@@ -72,15 +81,25 @@
             </md-button>
         </md-layout>
 
+        <add-peer-dialog ref="add-peer-dialog"></add-peer-dialog>
         <show-public-key-e-dialog ref="key-e-dialog"></show-public-key-e-dialog>
+
+        <md-dialog-confirm
+            md-content="确定要删除所选收发目标？"
+            md-ok-text="确定"
+            md-cancel-text="取消"
+            ref="delete-peer-dialog"
+        ></md-dialog-confirm>
 
     </div>
 </template>
 
 <script lang="ts">
 import localforage from "localforage"
-import KEY from "../core/key"
-import ShowPublicKeyEDialog from "./ShowPublicKeyEDialog.vue"
+import AddPeerDialog from "../components/AddPeerDialog.vue"
+import ShowPublicKeyEDialog from "../components/ShowPublicKeyEDialog.vue"
+import dialogEventMixin from "../utils/dialog-event-mixin"
+import baseUtilsMixin from "../utils/base-utils-mixin"
 import { DialogStates } from "../utils/common-types"
 
 export interface PeerInfo {
@@ -92,29 +111,42 @@ export interface PeerInfo {
     publicKeyE: string;
 }
 
+export const getPeersList = async () => {
+    const peersList: PeerInfo[] = await localforage.getItem("peersList")
+    return peersList || []
+}
+
 export default {
     components: {
+        AddPeerDialog,
         ShowPublicKeyEDialog,
     },
+    mixins: [
+        baseUtilsMixin,
+        dialogEventMixin,
+    ],
     data() {
         return ({
-            peersList: null,
+            peersList: [],
             peerInUse: 0,
         })
     },
     methods: {
-        _getLocaleDateString(date: Date) {
-            return new Date(date).toLocaleString()
-        },
         async _emitPeerInUseEvent(n: number) {
             const peer: PeerInfo = await this.getPeerInfoByN(n)
             this.$emit("changePeer", peer)
+        },
+        async _addPeersListItem(item: PeerInfo) {
+            const peersList: PeerInfo[] = this.peersList
+            peersList.push(item)
+            await this.savePeersList()
+            await this.setInUse(peersList.length - 1)
         },
         getPeerInfoByN(n: number) {
             return this.peersList[n]
         },
         async loadPeersList() {
-            const peersList: PeerInfo[] = await localforage.getItem("peersList")
+            const peersList = await getPeersList()
             this.peersList = peersList
             return peersList
         },
@@ -152,28 +184,23 @@ export default {
             this.$refs["key-e-dialog"].open(publicKeyE)
         },
         async addPeer() {
-            const dialogState: DialogStates = await this._waitForDialogClose("add-peer-dialog")
+            const [peerInfo]: [PeerInfo] = await this._waitForDialogEvent("add-peer-dialog", "add")
 
-            if (dialogState == "ok") {
-                const name: string = this.newPeerName
-                const nameExists: boolean = this._isNameExisted(name)
-
-                if (!name) {
-                    this._openAlertDialog("请输入密钥名称")
-                    return
-                } else if (nameExists) {
-                    this._openAlertDialog("名称已被使用")
-                    return
-                }
-
-                await KEY.getKeyPair(name)
-
-                await this._addKeyListItem({
-                    name: name,
-                    date: new Date()
-                })
+            if (peerInfo) {
+                console.log("new peerInfo", peerInfo)
+                await this._addPeersListItem(peerInfo)
             }
-        }
+        },
+        async deletePeer(n: number) {
+            const dialogState: DialogStates = await this._waitForDialogClose("delete-peer-dialog")
+            if (dialogState == "ok") {
+                const peersList: PeerInfo[] = this.peersList
+                this.peersList = peersList.map((item, index) => {
+                    return index !== n ? item : null
+                })
+                this.savePeersList()
+            }
+        },
     },
     async mounted() {
         await this.loadPeersList()

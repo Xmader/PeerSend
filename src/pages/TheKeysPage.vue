@@ -22,7 +22,7 @@
                             </span>
                         </span>
                         <span>
-                            添加时间: {{ _getLocaleDateString(item.date)}}
+                            创建时间: {{ _getLocaleDateString(item.date)}}
                         </span>
                     </div>
 
@@ -135,10 +135,11 @@ import localforage from "localforage"
 import FileSaver from "file-saver"
 import KEY from "../core/key"
 import RSA from "../core/rsa"
-import UploadKeyDialog, { KeyFileExt } from "./UploadKeyDialog.vue"
-import ShowPublicKeyEDialog from "./ShowPublicKeyEDialog.vue"
+import UploadKeyDialog, { KeyFileExt } from "../components/UploadKeyDialog.vue"
+import ShowPublicKeyEDialog from "../components/ShowPublicKeyEDialog.vue"
 import { DialogStates } from "../utils/common-types"
 import dialogEventMixin from "../utils/dialog-event-mixin"
+import baseUtilsMixin from "../utils/base-utils-mixin"
 
 export interface KeyListItem {
     name: string;
@@ -202,11 +203,12 @@ export default {
         ShowPublicKeyEDialog,
     },
     mixins: [
+        baseUtilsMixin,
         dialogEventMixin,
     ],
     data() {
         return ({
-            keyList: null,
+            keyList: [],
             keyInUse: 0,
             newKeyName: "",
             alertDialogText: " ",
@@ -219,9 +221,6 @@ export default {
         })
     },
     methods: {
-        _getLocaleDateString(date: Date) {
-            return new Date(date).toLocaleString()
-        },
         async _emitKeyInUseEvent(n: number) {
             const keyInfo: KeyInfo = await this.getKeyInfoByN(n)
             this.eventNames.forEach((name: string) => {
@@ -281,7 +280,7 @@ export default {
             }
         },
         async loadKeyList() {
-            const keyList: KeyListItem[] = await localforage.getItem("keyList")
+            const keyList: KeyListItem[] = await localforage.getItem("keyList") || []
             this.keyList = keyList
             return keyList
         },
@@ -308,11 +307,18 @@ export default {
         async deleteKey(keyToDelete: number) {
             const dialogState: DialogStates = await this._waitForDialogClose("delete-key-dialog")
             if (dialogState == "ok") {
+
+                const { name }: KeyListItem = this.keyList[keyToDelete]
+
+                // delete from keyList
                 const keyList: KeyListItem[] = this.keyList
                 this.keyList = keyList.map((item, index) => {
                     return index !== keyToDelete ? item : null
                 })
                 this.saveKeyList()
+
+                // delete from localforage
+                await localforage.dropInstance({ name })
             }
         },
         async downloadKey(n: number) {

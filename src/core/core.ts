@@ -27,10 +27,10 @@ const _prefixDataByte = (data: Uint8Array, byte: number) => {
     return buf
 }
 
-export const encryptAndSign = async <T = string>(
+export const encryptAndSign2 = async <T = string>(
     dataObj: DataObj,
     peerPublicKeyE: string,
-    selfStoreName: string = "self",
+    selfPrivateKey: CryptoKey,
     // @ts-ignore
     serializer: Serializer<T> = Base256Serializer
 ) => {
@@ -43,26 +43,37 @@ export const encryptAndSign = async <T = string>(
     const peerPublicKey = await KEY.importPublicKeyFromE(peerPublicKeyE)
     const encryptedData = await RSA.encrypt(peerPublicKey, prefixedData)
 
-    const selfPrivateKey = await KEY.getPrivateKey(selfStoreName)
     const signature = await RSA.sign(selfPrivateKey, prefixedData)
 
     return serializer.serialize({ encryptedData, signature })
 }
 
+/**
+ * @deprecated
+ */
+export const encryptAndSign = async <T = string>(
+    dataObj: DataObj,
+    peerPublicKeyE: string,
+    selfStoreName: string = "self",
+    // @ts-ignore
+    serializer: Serializer<T> = Base256Serializer
+) => {
+    const selfPrivateKey = await KEY.getPrivateKey(selfStoreName)
+    return encryptAndSign2(dataObj, peerPublicKeyE, selfPrivateKey, serializer)
+}
 
-export const decryptAndVerify = async <T = string>(
+
+export const decryptAndVerify2 = async <T = string>(
     serializedData: T,
+    selfPrivateKey: CryptoKey,
     /** 发送方的公钥，用来验证签名 */
     senderPublicKeyE?: string,
-    selfStoreName: string = "self",
     // @ts-ignore
     serializer: Serializer<T> = Base256Serializer
 ) => {
     const { encryptedData, signature } = await serializer.deserialize(serializedData)
 
-    const privateKey = await KEY.getPrivateKey(selfStoreName)
-
-    const decryptedPrefixedData = await RSA.decrypt(privateKey, encryptedData)
+    const decryptedPrefixedData = await RSA.decrypt(selfPrivateKey, encryptedData)
     const rawData = decryptedPrefixedData.slice(1)
     const type = decryptedPrefixedData[0]
 
@@ -83,6 +94,21 @@ export const decryptAndVerify = async <T = string>(
     if (verified) {
         return dataObj
     }
+}
+
+/**
+ * @deprecated
+ */
+export const decryptAndVerify = async <T = string>(
+    serializedData: T,
+    /** 发送方的公钥，用来验证签名 */
+    senderPublicKeyE?: string,
+    selfStoreName: string = "self",
+    // @ts-ignore
+    serializer: Serializer<T> = Base256Serializer
+) => {
+    const privateKey = await KEY.getPrivateKey(selfStoreName)
+    return decryptAndVerify2(serializedData, privateKey, senderPublicKeyE, serializer)
 }
 
 

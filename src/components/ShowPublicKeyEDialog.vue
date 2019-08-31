@@ -26,21 +26,20 @@
             </md-button>
         </md-dialog-actions>
 
-        <md-snackbar
+        <copy-snackbar
             ref="snackbar"
-            md-position="top center"
-        >
-            <span>复制{{ copySucceeded ? "成功" : "失败"}}！</span>
-            <md-button
-                class="md-accent"
-                @click="$refs.snackbar.close()"
-            >知道了</md-button>
-        </md-snackbar>
+            :status="copySucceeded"
+        ></copy-snackbar>
     </md-dialog>
 </template>
 
 <script lang="ts">
+import CopySnackbar from "./CopySnackbar.vue"
+
 export default {
+    components: {
+        CopySnackbar
+    },
     data: () => ({
         keyE: null,
         copySucceeded: null,
@@ -56,7 +55,6 @@ export default {
             this.$emit("open")
         },
         close() {
-            this.keyE = null
             this.$refs["dialog"].close()
             this.$emit("close")
         },

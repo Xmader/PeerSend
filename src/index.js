@@ -10,6 +10,8 @@ import VueClipboard from "vue-clipboard2"
 // @ts-ignore
 import App from "./App.vue"
 
+import "./utils/cordova-utils"
+
 // @ts-ignore
 Vue.use(VueMaterial)
 // @ts-ignore

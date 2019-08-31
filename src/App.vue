@@ -3,6 +3,7 @@
         <md-whiteframe md-elevation="3">
             <md-toolbar>
                 <md-button
+                    v-if="!actionMode"
                     class="md-icon-button"
                     @click="toggleSidenav"
                 >
@@ -16,8 +17,24 @@
                     PeerSend
                     <small style="font-size: 75%; margin-left: 1em;">{{ getPageNameById(activePage) }}</small>
                 </h2>
+
+                <md-button
+                    v-if="actionMode"
+                    class="md-icon-button"
+                    @click="switchActionPages"
+                >
+                    <md-icon>swap_calls</md-icon>
+                </md-button>
             </md-toolbar>
         </md-whiteframe>
+
+        <the-encrypt-page
+            v-if="!!isActive('encrypt')"
+            :key-in-use-info="keyInUseInfo"
+            :peer-in-use-info="peerInUseInfo"
+            @changePageReq="switchPage"
+            :actionMode="actionMode"
+        ></the-encrypt-page>
 
         <the-keys-page
             v-show="!!isActive('keys')"
@@ -28,6 +45,8 @@
             v-show="!!isActive('peers')"
             @changePeer="onChangePeer"
         ></the-peers-page>
+
+        <the-about-page v-if="!!isActive('about')"></the-about-page>
 
         <md-sidenav
             class="md-left md-fixed"
@@ -41,9 +60,9 @@
                 <div style="margin-left: 8px; margin-bottom: 0.5em;">
                     © Xmader
                     <br>
-                    Licensed under MIT Licence
+                    Licensed under MIT
                     <br>
-                    https://github.com/Xmader/PeerSend
+                    https://github.com/Xmader/PeerSend/
                 </div>
             </md-toolbar>
 
@@ -63,9 +82,12 @@
 </template>
 
 <script lang="ts">
-// @ts-ignore
-import TheKeysPage from "./pages/TheKeysPage.vue"
-import ThePeersPage from "./pages/ThePeersPage.vue"
+import TheKeysPage, { KeyInfo } from "./pages/TheKeysPage.vue"
+import ThePeersPage, { PeerInfo } from "./pages/ThePeersPage.vue"
+import TheEncryptPage from "./pages/TheEncryptPage.vue"
+import TheAboutPage from "./pages/TheAboutPage.vue"
+
+import { DeviceReady } from "./utils/cordova-utils"
 
 interface PageInfo {
     id: string;
@@ -75,9 +97,14 @@ interface PageInfo {
 
 const pages: PageInfo[] = [
     {
-        id: "messaging",
-        name: "收发消息",
-        icon: "compare_arrows",
+        id: "encrypt",
+        name: "加密文本",
+        icon: "enhanced_encryption",
+    },
+    {
+        id: "decrypt",
+        name: "解密文本",
+        icon: "lock_open",
     },
     {
         id: "keys",
@@ -89,40 +116,60 @@ const pages: PageInfo[] = [
         name: "收发目标管理",
         icon: "people",
     },
-    // {
-    //     id: "about",
-    //     name: "关于",
-    //     icon: "info",
-    // },
+    {
+        id: "about",
+        name: "关于",
+        icon: "info",
+    },
 ]
-
-type KeyListItem = import("./pages/TheKeysPage.vue").KeyListItem
-type KeyInfo = import("./pages/TheKeysPage.vue").KeyInfo
-type PeerInfo = import("./pages/ThePeersPage.vue").PeerInfo
 
 export default {
     components: {
         TheKeysPage,
         ThePeersPage,
+        TheEncryptPage,
+        TheAboutPage,
     },
     data() {
         return ({
-            activePage: "messaging",
+            activePage: "about",
             classes: {
                 active: "md-primary",
             },
             pages,
             keyInUseInfo: null,
             peerInUseInfo: null,
+            actionMode: false,
         })
     },
     methods: {
         toggleSidenav() {
             this.$refs.leftSidenav.toggle()
         },
+        closeSidenav() {
+            this.$refs.leftSidenav.close()
+        },
         switchPage(pageId: string) {
             this.activePage = pageId
-            this.toggleSidenav()
+            this.closeSidenav()
+            this.actionMode = false
+        },
+        switchActionPages() {
+            if (this.activePage == "decrypt") {
+                this.activePage = "encrypt"
+            } else {
+                this.activePage = "decrypt"
+            }
+        },
+        toggleActionMode() {
+            if (!this.actionMode) {
+                this.closeSidenav()
+                this.actionMode = true
+                this.activePage = "encrypt"
+            } else {
+                this.actionMode = false
+                this.activePage = "about"
+            }
         },
         isActive(pageId: string) {
             return this.activePage == pageId ? this.classes.active : null
@@ -139,6 +186,12 @@ export default {
         onChangePeer(peer: PeerInfo) {
             this.peerInUseInfo = peer
         },
+    },
+    async mounted() {
+        // window["toggleActionMode"] = this.toggleActionMode
+
+        await DeviceReady.waitForCordovaLoaded()
+        this.actionMode = true
     },
 }
 </script>
