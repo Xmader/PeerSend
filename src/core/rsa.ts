@@ -25,13 +25,9 @@ const encryptOpts: RsaOaepParams = {
 }
 
 type Usage = "encrypt" | "decrypt" | "sign" | "verify" | "wrapKey" | "unwrapKey"
-const keyUsages: Usage[] = [
-    "encrypt",
-    "decrypt",
+const keyUsagesToGenerate: Usage[] = [
     "sign",
     "verify",
-    "wrapKey",
-    "unwrapKey",
 ]
 
 interface UsageMapItem {
@@ -138,7 +134,7 @@ namespace RSA {
     }
 
     export const generateRSAKeyPair = async () => {
-        const keyPair = await subtle.generateKey(genKeyOpts, true, keyUsages)
+        const keyPair = await subtle.generateKey(genKeyOpts, true, keyUsagesToGenerate)
         return keyPair
     }
 

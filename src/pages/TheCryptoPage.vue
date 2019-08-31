@@ -13,28 +13,31 @@
 
             <xm-blank></xm-blank>
 
-            <md-card v-if="page == 'decrypt'">
-                <div class="xm-icon-card-title">接收匿名消息</div>
-                <md-card-header style="padding-top: 8px; padding-bottom: 8px;">
-                    <xm-switch
-                        v-model="senderPublicKeyUnknown"
-                        @change="onToggleSenderKeyUnknown"
-                        :disabled="!!resultText"
-                    >（发送方公钥未知）</xm-switch>
-                </md-card-header>
-            </md-card>
+            <template v-if="page == 'decrypt'">
+                <md-card>
+                    <div class="xm-icon-card-title">接收匿名消息</div>
+                    <md-card-header style="padding-top: 8px; padding-bottom: 8px;">
+                        <xm-switch
+                            v-model="senderPublicKeyUnknown"
+                            @change="onToggleSenderKeyUnknown"
+                            :disabled="!!resultText"
+                        >（发送方公钥未知）</xm-switch>
+                    </md-card-header>
+                </md-card>
 
-            <xm-blank></xm-blank>
+                <xm-blank></xm-blank>
+            </template>
 
-            <xm-peer-in-use-info-card
-                v-if="!senderPublicKeyUnknown"
-                @changePageReq="handleChangePageReq"
-                :peerInUseInfo="peerInUseInfo"
-                :page="page"
-                :disabled="!!resultText"
-            ></xm-peer-in-use-info-card>
+            <template v-if="!senderPublicKeyUnknown">
+                <xm-peer-in-use-info-card
+                    @changePageReq="handleChangePageReq"
+                    :peerInUseInfo="peerInUseInfo"
+                    :page="page"
+                    :disabled="!!resultText"
+                ></xm-peer-in-use-info-card>
 
-            <xm-blank></xm-blank>
+                <xm-blank></xm-blank>
+            </template>
 
             <template v-if="!actionMode">
                 <template v-if="!resultText">

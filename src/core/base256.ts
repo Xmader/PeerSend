@@ -17,6 +17,9 @@ namespace BASE256 {
 
     export const decode = (str: string) => {
         const arr = str.split("").map((x) => {
+            if (!Chars256.includes(x)) {
+                throw new Error("can't decode as a base256 string")
+            }
             return Chars256.indexOf(x)
         })
         return new Uint8Array(arr)

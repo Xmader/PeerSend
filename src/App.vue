@@ -89,7 +89,8 @@ import ThePeersPage, { PeerInfo } from "./pages/ThePeersPage.vue"
 import TheCryptoPage from "./pages/TheCryptoPage.vue"
 import TheAboutPage from "./pages/TheAboutPage.vue"
 
-import { DeviceReady } from "./utils/cordova-utils"
+import { DeviceReady, IntentUtils, SelectedTextUtils } from "./utils/cordova-utils"
+import { Base256Serializer } from "./core/serialization"
 
 interface PageInfo {
     id: string;
@@ -193,8 +194,20 @@ export default {
         // window["toggleActionMode"] = this.toggleActionMode
 
         await DeviceReady.waitForCordovaLoaded()
-        this.actionMode = true
-        this.activePage = "encrypt"
+
+        if (await IntentUtils.getProcessTextIntent(false)) {
+            this.actionMode = true
+            this.activePage = "encrypt"
+
+            const selectedText = await SelectedTextUtils.getSelectedText()
+            try {
+                // try to deserialize and decode using Base256Serializer, if success, the text probably is a encrypted text
+                Base256Serializer.deserialize(selectedText)
+                this.activePage = "decrypt"
+            } catch (_) {
+                /** do nothing */
+            }
+        }
     },
 }
 </script>

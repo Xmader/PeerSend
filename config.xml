@@ -23,9 +23,7 @@
             <activity android:excludeFromRecents="true"></activity>
         </edit-config>
         <config-file target="AndroidManifest.xml" parent="/manifest/application/activity">
-            <intent-filter android:label="test">
-                <action android:name="android.intent.action.VIEW" />
-                <action android:name="android.intent.action.SEND" />
+            <intent-filter android:label="使用 PeerSend 加密/解密">
                 <action android:name="android.intent.action.PROCESS_TEXT" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="text/plain" />

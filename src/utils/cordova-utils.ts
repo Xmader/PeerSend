@@ -41,10 +41,11 @@ export namespace IntentUtils {
 
     export const getProcessTextIntent = async (throwErr = true): Promise<ProcessTextIntent> => {
         const intent = await getIntent()
-        if (!_isProcessTextIntent(intent) && throwErr) {
+        if (_isProcessTextIntent(intent)) {
+            return intent
+        } else if (throwErr) {
             throw new TypeError("intent is not a ProcessTextIntent")
         }
-        return intent
     }
 
     export const sendIntentResult = (intent: Intent): Promise<"OK"> => {
