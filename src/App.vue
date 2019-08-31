@@ -202,7 +202,7 @@ export default {
             const selectedText = await SelectedTextUtils.getSelectedText()
             try {
                 // try to deserialize and decode using Base256Serializer, if success, the text probably is a encrypted text
-                Base256Serializer.deserialize(selectedText)
+                await Base256Serializer.deserialize(selectedText)
                 this.activePage = "decrypt"
             } catch (_) {
                 /** do nothing */

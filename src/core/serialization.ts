@@ -23,7 +23,7 @@ export const Base256Serializer: Serializer<string> = {
         return [encryptedDataE, signatureE].join(Base256SeparatorChar)
     },
 
-    async deserialize(serializedData: string) {
+    deserialize(serializedData: string) {
         const [encryptedDataE, signatureE] = serializedData.split(Base256SeparatorChar)
         const encryptedData = BASE256.decode(encryptedDataE)
         const signature = BASE256.decode(signatureE)
