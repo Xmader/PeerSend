@@ -69,7 +69,7 @@
                         ></xm-icon-card>
 
                         <xm-icon-card
-                            v-else-if="!senderPublicKeyUnknown"
+                            v-else-if="!senderPublicKeyUnknown && decryptSucceeded !== false"
                             :active="false"
                             title="密文并非来自发送方本人"
                             icon="clear"
@@ -89,6 +89,7 @@
                     <xm-blank></xm-blank>
 
                     <md-button
+                        :disabled="decryptSucceeded == false"
                         class="md-raised md-primary xm-button"
                         v-clipboard:copy="resultText"
                         v-clipboard:success="() => handleCopyStatus(true)"
@@ -145,6 +146,12 @@
             ref="copy-snackbar"
             text="复制"
             :status="copySucceeded"
+        ></xm-snackbar>
+
+        <xm-snackbar
+            ref="decrypt-snackbar"
+            text="解密"
+            :status="decryptSucceeded"
         ></xm-snackbar>
     </div>
 </template>
@@ -212,6 +219,7 @@ export default {
             rawText: null,
             resultText: null,
             copySucceeded: null,
+            decryptSucceeded: null,
             senderPublicKeyUnknown: false,
             verified: null,
         })
@@ -229,6 +237,7 @@ export default {
             this.rawText = null
             this.resultText = null
             this.verified = null
+            this.decryptSucceeded = null
         },
         handleCopyStatus(status: boolean) {
             this.copySucceeded = status
@@ -252,13 +261,20 @@ export default {
                 }, peerPublicKeyE, selfPrivateKey)
 
             } else if (this.page == "decrypt") {
+                try {
 
-                const dataObj = await CORE.decryptAndVerify2(text, selfPrivateKey, peerPublicKeyE)
+                    const dataObj = await CORE.decryptAndVerify2(text, selfPrivateKey, peerPublicKeyE)
 
-                this.verified = dataObj.verified
+                    this.verified = dataObj.verified
 
-                resultText = dataObj.data as string
+                    resultText = dataObj.data as string
 
+                } catch (err) {
+                    console.error(err)
+                    this.decryptSucceeded = false
+                    this.$refs["decrypt-snackbar"].open()
+                    resultText = "(解密失败)"
+                }
             } else {
                 throw new Error("unknown page name")
             }
