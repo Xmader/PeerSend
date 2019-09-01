@@ -74,7 +74,8 @@ export namespace SelectedTextUtils {
 
         const resultI: Intent<undefined, ProcessTextExtras> = {
             extras: {
-                "android.intent.extra.PROCESS_TEXT": newText
+                "android.intent.extra.PROCESS_TEXT": newText,
+                "android.intent.extra.PROCESS_TEXT_READONLY": false,
             }
         }
         await IntentUtils.sendIntentResult(resultI)

@@ -79,9 +79,9 @@
                             content="数字签名校验失败"
                             content-subhead="密文可能已经被篡改。 （是不是发送方选择错误了？如果你不知道发送方的公钥，请启用接收匿名消息）"
                         ></xm-icon-card>
-                    </template>
 
-                    <xm-blank></xm-blank>
+                        <xm-blank></xm-blank>
+                    </template>
 
                     <xm-input-text-card
                         :title="this.page == 'encrypt' ? '密文：' : '原始文本：'"
