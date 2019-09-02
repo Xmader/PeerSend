@@ -89,7 +89,9 @@ import ThePeersPage, { PeerInfo } from "./pages/ThePeersPage.vue"
 import TheCryptoPage from "./pages/TheCryptoPage.vue"
 import TheAboutPage from "./pages/TheAboutPage.vue"
 
-import { DeviceReady, IntentUtils, SelectedTextUtils } from "./utils/cordova-utils"
+import SelectedTextUtils from "./utils/selected-text-utils"
+import SendActionUtils from "./utils/send-action-utils"
+import { DeviceReady, IntentUtils } from "./utils/cordova-utils"
 import { Base256Serializer } from "./core/serialization"
 
 interface PageInfo {
@@ -125,6 +127,22 @@ const pages: PageInfo[] = [
         icon: "info",
     },
 ]
+
+export enum ActionModes {
+    "PROCESS_TEXT_ACTION",
+    "SEND_TEXT_ACTION",
+}
+
+export enum IntentActionToActionModeMap {
+    "android.intent.action.PROCESS_TEXT" = ActionModes.PROCESS_TEXT_ACTION,
+    "android.intent.action.SEND" = ActionModes.SEND_TEXT_ACTION,
+    "android.intent.action.SEND_MULTIPLE" = ActionModes.SEND_TEXT_ACTION,
+}
+
+export const ActionModeToGetTextFnMap: { [actionMode: number]: () => Promise<string>; } = {
+    [ActionModes.PROCESS_TEXT_ACTION]: SelectedTextUtils.getSelectedText,
+    [ActionModes.SEND_TEXT_ACTION]: SendActionUtils.getSentText,
+}
 
 export default {
     components: {
@@ -164,9 +182,13 @@ export default {
                 this.activePage = "decrypt"
             }
         },
+        /**
+         * @deprecated
+         */
         toggleActionMode() {
             if (!this.actionMode) {
                 this.closeSidenav()
+                /** should be one of the keys in ActionModes */
                 this.actionMode = true
                 this.activePage = "encrypt"
             } else {
@@ -191,18 +213,22 @@ export default {
         },
     },
     async mounted() {
-        // window["toggleActionMode"] = this.toggleActionMode
-
         await DeviceReady.waitForCordovaLoaded()
 
-        if (await IntentUtils.getProcessTextIntent(false)) {
-            this.actionMode = true
+        const intent = await IntentUtils.getProcessTextIntent(false)
+            || await IntentUtils.getSendActionIntent(false)
+
+        if (intent) {
+            const actionMode = IntentActionToActionModeMap[intent.action]
+            this.actionMode = actionMode
+
             this.activePage = "encrypt"
 
-            const selectedText = await SelectedTextUtils.getSelectedText()
+            const getTextFn = ActionModeToGetTextFnMap[actionMode]
+            const actionModeText = await getTextFn()
             try {
                 // try to deserialize and decode using Base256Serializer, if success, the text probably is a encrypted text
-                await Base256Serializer.deserialize(selectedText)
+                await Base256Serializer.deserialize(actionModeText)
                 this.activePage = "decrypt"
             } catch (_) {
                 /** do nothing */

@@ -16,20 +16,46 @@ export interface Intent<ActionName extends string = any, Extras extends {} = any
 
     /** e.g. "text/plain" */
     type?: string;
+
+    clipItems?: object[];
+
+    /** 
+     * IntentShim 的私有 key，用于指示用 createChooser 包装 intent，值为创建的 chooser 的 title
+     * 
+     * IntentShim.java:581
+     * ```java
+     * if (obj.has("chooser")) {
+     *      i = Intent.createChooser(i, obj.getString("chooser"));
+     * }
+     *  ```
+     */
+    chooser?: string;
 }
 
-interface ProcessTextExtras {
+export interface ProcessTextExtras {
     "android.intent.extra.PROCESS_TEXT": string;
     "android.intent.extra.PROCESS_TEXT_READONLY"?: boolean;
 }
 
 export type ProcessTextIntent = Intent<"android.intent.action.PROCESS_TEXT", ProcessTextExtras>
 
+export interface SendActionExtras {
+    "android.intent.extra.SUBJECT"?: string;
+    "android.intent.extra.TEXT"?: string;
+    "android.intent.extra.STREAM": string;
+}
+
+export type SendActionIntent = Intent<"android.intent.action.SEND_MULTIPLE" | "android.intent.action.SEND", SendActionExtras>
 
 export namespace IntentUtils {
 
-    const _isProcessTextIntent = (intent: Intent) => {
+    const _isProcessTextIntent = (intent: ProcessTextIntent) => {
         return intent.action == "android.intent.action.PROCESS_TEXT"
+    }
+
+    const _isSendActionIntent = (intent: SendActionIntent) => {
+        return intent.action == "android.intent.action.SEND"
+            || intent.action == "android.intent.action.SEND_MULTIPLE"
     }
 
     export const getIntent = (): Promise<Intent> => {
@@ -48,6 +74,15 @@ export namespace IntentUtils {
         }
     }
 
+    export const getSendActionIntent = async (throwErr = true): Promise<SendActionIntent> => {
+        const intent = await getIntent()
+        if (_isSendActionIntent(intent)) {
+            return intent
+        } else if (throwErr) {
+            throw new TypeError("intent is not a SendActionIntent")
+        }
+    }
+
     export const sendIntentResult = (intent: Intent): Promise<"OK"> => {
         return new Promise((resolve) => {
             // @ts-ignore
@@ -55,41 +90,23 @@ export namespace IntentUtils {
         })
     }
 
-}
-
-export namespace SelectedTextUtils {
-
-    export const getSelectedText = async () => {
-        const intent = await IntentUtils.getProcessTextIntent()
-        return intent.extras["android.intent.extra.PROCESS_TEXT"]
+    export const startActivity = (intent: Intent): Promise<boolean> => {
+        return new Promise((resolve, reject) => {
+            // @ts-ignore
+            window.plugins.intentShim.startActivity(intent, resolve, reject)
+        })
     }
 
-    export const replaceSelectedText = async (newText: string) => {
-
-        const intent = await IntentUtils.getProcessTextIntent()
-
-        if (intent.extras["android.intent.extra.PROCESS_TEXT_READONLY"]) {
-            throw new Error("text is read only")
+    /**
+     * a wrapper of [Intent.createChooser()](https://developer.android.com/reference/android/content/Intent.html#createChooser(android.content.Intent,%20java.lang.CharSequence))
+     * @returns a [ACTION_CHOOSER](https://developer.android.com/reference/android/content/Intent.html#ACTION_CHOOSER) Intent 
+     */
+    export const createChooser = (target: Intent, title?: string): Intent => {
+        return {
+            ...target,
+            chooser: title,
         }
-
-        const resultI: Intent<undefined, ProcessTextExtras> = {
-            extras: {
-                "android.intent.extra.PROCESS_TEXT": newText,
-                "android.intent.extra.PROCESS_TEXT_READONLY": false,
-            }
-        }
-        await IntentUtils.sendIntentResult(resultI)
-
     }
-
-
-    // const _UNIT_TEST = async () => {
-    //     const text = await getSelectedText()
-    //     console.log(text)
-
-    //     const newText = text.split("").reverse().join("")
-    //     await replaceSelectedText(newText)
-    // }
 
 }
 

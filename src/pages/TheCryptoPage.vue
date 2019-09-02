@@ -103,6 +103,17 @@
 
                     <xm-blank></xm-blank>
 
+                    <template v-if="isCordova">
+                        <md-button
+                            class="md-raised md-primary xm-button"
+                            @click="shareText"
+                        >
+                            发送到…
+                        </md-button>
+
+                        <xm-blank></xm-blank>
+                    </template>
+
                     <md-button
                         class="md-raised md-primary xm-button"
                         @click="resetText"
@@ -178,7 +189,11 @@ import { KeyInfo } from "./TheKeysPage.vue"
 import { PeerInfo } from "./ThePeersPage.vue"
 
 import * as CORE from "../core/core"
-import { SelectedTextUtils, exitApp } from "../utils/cordova-utils"
+import SelectedTextUtils from "../utils/selected-text-utils"
+import SendActionUtils from "../utils/send-action-utils"
+import { exitApp, DeviceReady } from "../utils/cordova-utils"
+
+import { ActionModes, ActionModeToGetTextFnMap } from "../APP.vue"
 
 export default {
     components: {
@@ -198,7 +213,7 @@ export default {
         /** type: PeerInfo */
         peerInUseInfo: Object,
 
-        actionMode: Boolean,
+        actionMode: [Boolean, ActionModes],
 
         page: {
             type: String,
@@ -225,11 +240,12 @@ export default {
             decryptSucceeded: null,
             senderPublicKeyUnknown: false,
             verified: null,
+            isCordova: false,
         })
     },
     watch: {
         actionMode() {
-            this.loadActionModeSelectedText()
+            this.loadActionModeText()
         }
     },
     methods: {
@@ -241,6 +257,10 @@ export default {
             this.resultText = null
             this.verified = null
             this.decryptSucceeded = null
+        },
+        async shareText() {
+            const resultText: string = this.resultText
+            await SendActionUtils.shareText(resultText)
         },
         handleCopyStatus(status: boolean) {
             this.copySucceeded = status
@@ -285,12 +305,25 @@ export default {
             this.resultText = resultText
         },
         async actionCommit() {
+            const actionCommitFnMap = {
+                [ActionModes.PROCESS_TEXT_ACTION]: this.actionReplaceTextCommit,
+                [ActionModes.SEND_TEXT_ACTION]: this.actionShareText,
+            }
+            const actionCommitFn = actionCommitFnMap[this.actionMode] || this.actionShareText
+            await actionCommitFn()
+        },
+        async actionReplaceTextCommit() {
             await this.commit()
             await SelectedTextUtils.replaceSelectedText(this.resultText)
         },
-        async loadActionModeSelectedText() {
+        async actionShareText() {
+            await this.commit()
+            await this.shareText()
+        },
+        async loadActionModeText() {
             if (this.actionMode) {
-                this.rawText = await SelectedTextUtils.getSelectedText()
+                const getTextFn = ActionModeToGetTextFnMap[this.actionMode]
+                this.rawText = await getTextFn()
             }
         },
         onToggleSenderKeyUnknown(value: boolean) {
@@ -306,11 +339,16 @@ export default {
         },
         exitApp() {
             exitApp()
-        }
+        },
+        async getIsCordova() {
+            await DeviceReady.waitForCordovaLoaded()
+            this.isCordova = true
+        },
     },
     mounted() {
+        this.getIsCordova()
         this.loadIsToggleSenderKeyUnknown()
-        this.loadActionModeSelectedText()
+        this.loadActionModeText()
     },
 }
 </script>

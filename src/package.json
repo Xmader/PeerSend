@@ -13,7 +13,8 @@
         "localforage": "^1.7.3",
         "vue": "^2.6.10",
         "vue-clipboard2": "^0.3.0",
-        "vue-material": "~0.8.1"
+        "vue-material": "~0.8.1",
+        "wechat-msg-text-parser": "^1.0.0"
     },
     "devDependencies": {
         "@babel/core": "^7.5.5",

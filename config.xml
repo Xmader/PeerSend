@@ -23,10 +23,20 @@
             <activity android:excludeFromRecents="true"></activity>
         </edit-config>
         <config-file target="AndroidManifest.xml" parent="/manifest/application/activity">
+            <!-- 文字长按(选择)菜单 -->
             <intent-filter android:label="使用 PeerSend 加密/解密">
                 <action android:name="android.intent.action.PROCESS_TEXT" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="text/plain" />
+            </intent-filter>
+
+            <!-- 分享菜单 -->
+            <intent-filter android:label="加密/解密文本">
+                <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+                <data android:mimeType="message/rfc822" />
             </intent-filter>
         </config-file>
     </platform>
