@@ -193,7 +193,7 @@ import SelectedTextUtils from "../utils/selected-text-utils"
 import SendActionUtils from "../utils/send-action-utils"
 import { exitApp, DeviceReady } from "../utils/cordova-utils"
 
-import { ActionModes, ActionModeToGetTextFnMap } from "../APP.vue"
+import { ActionModes, ActionModeToGetTextFnMap } from "../utils/action-modes"
 
 export default {
     components: {

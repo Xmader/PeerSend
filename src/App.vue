@@ -89,10 +89,9 @@ import ThePeersPage, { PeerInfo } from "./pages/ThePeersPage.vue"
 import TheCryptoPage from "./pages/TheCryptoPage.vue"
 import TheAboutPage from "./pages/TheAboutPage.vue"
 
-import SelectedTextUtils from "./utils/selected-text-utils"
-import SendActionUtils from "./utils/send-action-utils"
 import { DeviceReady, IntentUtils } from "./utils/cordova-utils"
 import { Base256Serializer } from "./core/serialization"
+import { IntentActionToActionModeMap, ActionModeToGetTextFnMap } from "./utils/action-modes"
 
 interface PageInfo {
     id: string;
@@ -127,22 +126,6 @@ const pages: PageInfo[] = [
         icon: "info",
     },
 ]
-
-export enum ActionModes {
-    "PROCESS_TEXT_ACTION",
-    "SEND_TEXT_ACTION",
-}
-
-export enum IntentActionToActionModeMap {
-    "android.intent.action.PROCESS_TEXT" = ActionModes.PROCESS_TEXT_ACTION,
-    "android.intent.action.SEND" = ActionModes.SEND_TEXT_ACTION,
-    "android.intent.action.SEND_MULTIPLE" = ActionModes.SEND_TEXT_ACTION,
-}
-
-export const ActionModeToGetTextFnMap: { [actionMode: number]: () => Promise<string>; } = {
-    [ActionModes.PROCESS_TEXT_ACTION]: SelectedTextUtils.getSelectedText,
-    [ActionModes.SEND_TEXT_ACTION]: SendActionUtils.getSentText,
-}
 
 export default {
     components: {
