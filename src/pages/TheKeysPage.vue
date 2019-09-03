@@ -127,19 +127,29 @@
             md-ok-text="确定"
             ref="alert-dialog"
         ></md-dialog-alert>
+
+        <xm-snackbar
+            ref="snackbar"
+            :text="`保存到 <手机根目录>/Download/${snackbarFileName} `"
+            :status="true"
+        ></xm-snackbar>
     </div>
 </template>
 
 <script lang="ts">
 import localforage from "localforage"
-import FileSaver from "file-saver"
+import CrossFileSaver from "../utils/cross-file-saver"
 import KEY from "../core/key"
 import RSA from "../core/rsa"
+
 import UploadKeyDialog, { KeyFileExt } from "../components/UploadKeyDialog.vue"
 import ShowPublicKeyEDialog from "../components/ShowPublicKeyEDialog.vue"
+import xmSnackbar from "../components/xmSnackbar.vue"
+
 import { DialogStates } from "../utils/common-types"
 import dialogEventMixin from "../utils/dialog-event-mixin"
 import baseUtilsMixin from "../utils/base-utils-mixin"
+import CordovaMixin from "../utils/cordova-mixin"
 
 export interface KeyListItem {
     name: string;
@@ -199,12 +209,14 @@ export namespace KeyInfoSerializer {
 
 export default {
     components: {
+        xmSnackbar,
         UploadKeyDialog,
         ShowPublicKeyEDialog,
     },
     mixins: [
         baseUtilsMixin,
         dialogEventMixin,
+        CordovaMixin,
     ],
     data() {
         return ({
@@ -213,6 +225,7 @@ export default {
             newKeyName: "",
             alertDialogText: " ",
             alertDialogTitle: undefined,
+            snackbarFileName: null,
             eventNames: [
                 "updateKeyInUse",
                 "changeKeyInUse",
@@ -324,7 +337,12 @@ export default {
         async downloadKey(n: number) {
             const keyInfo: KeyInfo = await this.getKeyInfoByN(n)
             const keyInfoData = await KeyInfoSerializer.serialize(keyInfo)
-            FileSaver.saveAs(new Blob([keyInfoData]), `${keyInfo.name}${KeyFileExt}`)
+            const fileName = `${keyInfo.name}${KeyFileExt}`
+            this.snackbarFileName = fileName
+            await CrossFileSaver.saveAs(keyInfoData, fileName)
+            if (this.isCordova) {
+                this.$refs["snackbar"].open()
+            }
         },
         async uploadKey() {
             const [keyInfo]: [KeyInfo] = await this._waitForDialogEvent("upload-key-dialog", "uploaded")

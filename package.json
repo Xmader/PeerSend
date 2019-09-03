@@ -15,12 +15,16 @@
     "dependencies": {
         "com-darryncampbell-cordova-plugin-intent": "^1.1.8",
         "cordova-android": "^8.0.0",
-        "cordova-plugin-chooser": "^1.2.5"
+        "cordova-plugin-android-permissions": "^1.0.0",
+        "cordova-plugin-chooser": "^1.2.5",
+        "cordova-plugin-file": "^6.0.2"
     },
     "cordova": {
         "plugins": {
             "com-darryncampbell-cordova-plugin-intent": {},
-            "cordova-plugin-chooser": {}
+            "cordova-plugin-chooser": {},
+            "cordova-plugin-android-permissions": {},
+            "cordova-plugin-file": {}
         },
         "platforms": [
             "android"

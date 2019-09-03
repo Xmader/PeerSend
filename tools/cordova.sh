@@ -1,6 +1,8 @@
 
 cordova plugin add com-darryncampbell-cordova-plugin-intent
 cordova plugin add cordova-plugin-chooser
+cordova plugin add cordova-plugin-android-permissions
+cordova plugin add cordova-plugin-file
 
 cordova platform add android@8
 
