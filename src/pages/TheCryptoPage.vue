@@ -191,7 +191,8 @@ import { PeerInfo } from "./ThePeersPage.vue"
 import * as CORE from "../core/core"
 import SelectedTextUtils from "../utils/selected-text-utils"
 import SendActionUtils from "../utils/send-action-utils"
-import { exitApp, DeviceReady } from "../utils/cordova-utils"
+
+import CordovaMixin from "../utils/cordova-mixin"
 
 import { ActionModes, ActionModeToGetTextFnMap } from "../utils/action-modes"
 
@@ -206,6 +207,9 @@ export default {
         xmInputTextCard,
         xmSnackbar,
     },
+    mixins: [
+        CordovaMixin
+    ],
     props: {
         /** type: KeyInfo */
         keyInUseInfo: Object,
@@ -240,7 +244,6 @@ export default {
             decryptSucceeded: null,
             senderPublicKeyUnknown: false,
             verified: null,
-            isCordova: false,
         })
     },
     watch: {
@@ -336,13 +339,6 @@ export default {
             } else {
                 this.senderPublicKeyUnknown = false
             }
-        },
-        exitApp() {
-            exitApp()
-        },
-        async getIsCordova() {
-            await DeviceReady.waitForCordovaLoaded()
-            this.isCordova = true
         },
     },
     mounted() {
