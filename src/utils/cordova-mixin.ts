@@ -19,6 +19,9 @@ export const mixin: VueComponentOptions = {
             this.isCordova = true
         },
     },
+    mounted() {
+        this.getIsCordova()
+    },
 }
 
 export default mixin

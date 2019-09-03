@@ -14,11 +14,13 @@
     "license": "MIT",
     "dependencies": {
         "com-darryncampbell-cordova-plugin-intent": "^1.1.8",
-        "cordova-android": "^8.0.0"
+        "cordova-android": "^8.0.0",
+        "cordova-plugin-chooser": "^1.2.5"
     },
     "cordova": {
         "plugins": {
-            "com-darryncampbell-cordova-plugin-intent": {}
+            "com-darryncampbell-cordova-plugin-intent": {},
+            "cordova-plugin-chooser": {}
         },
         "platforms": [
             "android"

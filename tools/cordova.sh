@@ -1,5 +1,6 @@
 
 cordova plugin add com-darryncampbell-cordova-plugin-intent
+cordova plugin add cordova-plugin-chooser
 
 cordova platform add android@8
 

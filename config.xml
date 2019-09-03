@@ -17,7 +17,7 @@
     <platform name="android">
         <allow-intent href="market:*" />
         <edit-config file="AndroidManifest.xml" target="/manifest/application" mode="merge">
-            <application android:excludeFromRecents="true"></application>
+            <application android:excludeFromRecents="true" android:largeHeap="true"></application>
         </edit-config>
         <edit-config file="AndroidManifest.xml" target="/manifest/application/activity" mode="merge">
             <activity android:excludeFromRecents="true"></activity>

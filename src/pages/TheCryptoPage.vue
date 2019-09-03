@@ -342,7 +342,6 @@ export default {
         },
     },
     mounted() {
-        this.getIsCordova()
         this.loadIsToggleSenderKeyUnknown()
         this.loadActionModeText()
     },

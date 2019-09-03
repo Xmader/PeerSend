@@ -14,6 +14,8 @@
                     @selected="onFileChange"
                     placeholder="请选择一个密钥对信息文件"
                     :accept="KeyFileExt"
+                    @click.native="cordovaSelectFile"
+                    :disabled="isCordova"
                     required
                 ></md-file>
                 <span class="md-error">{{ errorContent }}</span>
@@ -38,10 +40,16 @@
 
 <script lang="ts">
 import { KeyInfoSerializer } from "../pages/TheKeysPage.vue"
+import FileReaderPromise from "../utils/file-reader-promise"
+import CordovaMixin from "../utils/cordova-mixin"
+import CordovaFileChooser from "../utils/cordova-file-chooser"
 
 export const KeyFileExt = ".keyinfo"
 
 export default {
+    mixins: [
+        CordovaMixin
+    ],
     data: () => ({
         fileName: null,
         keyInfo: null,
@@ -68,24 +76,27 @@ export default {
             this.$refs["file-dialog"].close()
             this.$emit("close")
         },
+        async cordovaSelectFile() {
+            if (!this.isCordova) {
+                return
+            }
+
+            const result = await CordovaFileChooser.selectFile()
+            this.fileName = result.name
+            await this.getKeyInfoWithLock(result.data)
+        },
         async onFileChange(files: FileList) {
             if (files.length == 0) return
             const file = files[0]
-            this.locked = true
-            await this.getKeyInfo(file)
-            this.locked = false
+            await this.getKeyInfoWithLock(file)
         },
-        async getKeyInfo(file: File) {
-            // 读取文件内容
-            const reader = new FileReader()
-            const buf: ArrayBuffer = await new Promise((resolve) => {
-                reader.onload = (e) => {
-                    // @ts-ignore
-                    resolve(e.target.result)
-                }
-                reader.readAsArrayBuffer(file)
-            })
-            const data = new Uint8Array(buf)
+        async getKeyInfo(file: File | Uint8Array) {
+            let data: Uint8Array
+            if (file instanceof Blob) {
+                data = await FileReaderPromise(file)
+            } else {
+                data = new Uint8Array(file)
+            }
 
             try {
                 const keyInfo = await KeyInfoSerializer.deserialize(data)
@@ -95,10 +106,15 @@ export default {
                 this.keyInfo = null
             }
         },
+        async getKeyInfoWithLock(file: File | Uint8Array) {
+            this.locked = true
+            await this.getKeyInfo(file)
+            this.locked = false
+        },
         commit() {
             this.$emit("uploaded", this.keyInfo)
             this.close()
-        }
+        },
     },
 }
 </script>
