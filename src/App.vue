@@ -209,12 +209,18 @@ export default {
 
             const getTextFn = ActionModeToGetTextFnMap[actionMode]
             const actionModeText = await getTextFn()
-            try {
-                // try to deserialize and decode using Base256Serializer, if success, the text probably is a encrypted text
-                await Base256Serializer.deserialize(actionModeText)
-                this.activePage = "decrypt"
-            } catch (_) {
-                /** do nothing */
+            const textLength = actionModeText.trim().length
+            if ((textLength - 256 - 1) % 256 == 0) {
+                // - 256: signature length
+                // - 1: length of Base256SeparatorChar (还)
+                // % 256: length of each RSA encrypted data chunck 
+                try {
+                    // try to deserialize and decode using Base256Serializer, if success, the text probably is a encrypted text
+                    await Base256Serializer.deserialize(actionModeText)
+                    this.activePage = "decrypt"
+                } catch (_) {
+                    /** do nothing */
+                }
             }
         }
     },
