@@ -4,7 +4,7 @@ import SelectedTextUtils from "./selected-text-utils"
 import SendActionUtils from "./send-action-utils"
 
 export enum ActionModes {
-    "PROCESS_TEXT_ACTION",
+    "PROCESS_TEXT_ACTION" = 1,
     "SEND_TEXT_ACTION",
 }
 
